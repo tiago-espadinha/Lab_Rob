@@ -1,6 +1,7 @@
 import pygame
 import serial
 import time
+import numpy as np
 
 
 
@@ -118,7 +119,13 @@ default_pos = (0,0,0)
 speed_com = "SPEED " + str(speed)
 default_com = "HERE " + str(default_pos)
 teach_com = "TEACH "
+list_com = "LISTPV A31"
+del_com = "DELP A31"
+here_com = "HERE A32"
 
+def split(string, split_char):
+    str_array = string.split(split_char)
+    return str_array
 # Send command to serial port
 def send_command(port, command):
     
@@ -140,6 +147,11 @@ def port_init(com_port):
         print("Failed to connect to serial port.")
         return None
     return ser
+
+def receive_command(port):
+    daddy = port.readline()
+    print(daddy)
+    return daddy
 
 
 # Initialize controller
@@ -219,12 +231,29 @@ def main():
 
             if event.type == pygame.JOYBUTTONDOWN:
                 if joystick.get_button(ctrl_map_ps3_btn['Triangle']):
+                    if ser != None:
+                        print(here_com)
+                        send_command(ser, here_com)
                     draw_highlight(highlight_surface, map_pos['Triangle'])
                 if joystick.get_button(ctrl_map_ps3_btn['Square']):
                     draw_highlight(highlight_surface, map_pos['Square'])
                 if joystick.get_button(ctrl_map_ps3_btn['Circle']):
+                    if ser != None:    
+                        print(del_com)
+                        send_command(ser, del_com)               
                     draw_highlight(highlight_surface, map_pos['Circle'])
                 if joystick.get_button(ctrl_map_ps3_btn['X']):
+                    if ser != None:
+                        print(list_com)
+                        send_command(ser, list_com)
+                        info = receive_command(ser)
+                        info_array = split(info, " ")
+                        final_array = np.zeros(len(info_array))
+                        print(info_array)
+                        for i in range(len(info_array)):
+                            aux = split(info_array[i], ":")
+                            final_array[i] = aux[1]
+                        print(final_array)
                     draw_highlight(highlight_surface, map_pos['X'])
 
                 # if joystick.get_button(ctrl_map_ps3['Up']):
