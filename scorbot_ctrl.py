@@ -119,9 +119,9 @@ default_pos = (0,0,0)
 speed_com = "SPEED " + str(speed)
 default_com = "HERE " + str(default_pos)
 teach_com = "TEACH "
-list_com = "LISTPV A31"
+list_com = "LISTPV A31\r"
 del_com = "DELP A31"
-here_com = "HERE A32"
+here_com = "HERE A32\r"
 
 def split(string, split_char):
     str_array = string.split(split_char)
@@ -129,7 +129,8 @@ def split(string, split_char):
 # Send command to serial port
 def send_command(port, command):
     
-    port.write(command.encode())
+    print("Sent: ", command.encode('utf8'))
+    port.write(command.encode('utf8'))
 
     time.sleep(0.1)
 
@@ -149,9 +150,9 @@ def port_init(com_port):
     return ser
 
 def receive_command(port):
-    daddy = port.readline()
-    print(daddy)
-    return daddy
+    message = port.readline()
+    print("Recived: ", message)
+    return message
 
 
 # Initialize controller
@@ -232,8 +233,11 @@ def main():
             if event.type == pygame.JOYBUTTONDOWN:
                 if joystick.get_button(ctrl_map_ps3_btn['Triangle']):
                     if ser != None:
-                        print(here_com)
                         send_command(ser, here_com)
+                        receive_command(ser)
+                        receive_command(ser)
+                        receive_command(ser)
+                        receive_command(ser)
                     draw_highlight(highlight_surface, map_pos['Triangle'])
                 if joystick.get_button(ctrl_map_ps3_btn['Square']):
                     draw_highlight(highlight_surface, map_pos['Square'])
@@ -244,12 +248,16 @@ def main():
                     draw_highlight(highlight_surface, map_pos['Circle'])
                 if joystick.get_button(ctrl_map_ps3_btn['X']):
                     if ser != None:
-                        print(list_com)
                         send_command(ser, list_com)
+            
                         info = receive_command(ser)
+                        receive_command(ser)
+                        receive_command(ser)
+                        receive_command(ser)
+                        receive_command(ser)
                         info_array = split(info, " ")
                         final_array = np.zeros(len(info_array))
-                        print(info_array)
+                        print("INFO: ", info_array)
                         for i in range(len(info_array)):
                             aux = split(info_array[i], ":")
                             final_array[i] = aux[1]
