@@ -4,7 +4,6 @@ import time
 import numpy as np
 
 
-
 map_pos = { 'X': (492,260), 
             'Circle': (537,215), 
             'Square': (447,215), 
@@ -123,6 +122,45 @@ list_com = "LISTPV A31\r"
 del_com = "DELP A31"
 here_com = "HERE A32\r"
 
+def move_to_pos(serial_port, pos, move_type):
+    if move_type == 'up' or move_type == 'down':
+        set_pos_com = "SETPVC A31 X " + str(pos[0]) + "\r"
+    if move_type == 'left' or move_type == 'right':
+        set_pos_com = "SETPVC A31 Y " + str(pos[1]) + "\r"
+    if move_type == 'forward' or move_type == 'backward':
+        set_pos_com = "SETPVC A31 Z " + str(pos[2]) + "\r"
+    send_command(serial_port, set_pos_com)
+    receive_command(serial_port)
+    recv_com=receive_command(serial_port)
+    send_command(serial_port, "MOVED A31\r")
+    receive_command(serial_port)
+    recv_com=receive_command(serial_port)
+    return 1
+
+def get_pos(serial_port):
+    # Save current position
+    pos_com = "HERE A31\r"
+    send_command(serial_port, pos_com)
+    receive_command(serial_port)
+    recv_com=receive_command(serial_port)
+    if 'Done' in recv_com:
+        # Get current coordinates
+        pos_com = "LISPV A31\r"
+        send_command(serial_port, pos_com)
+        receive_command(serial_port)
+        recv_com=receive_command(serial_port)
+        if 'Position' in recv_com:
+            receive_command(serial_port)
+            recv_com=receive_command(serial_port)
+            split_com = split(recv_com, " ")
+            new_split_com = np.zeros(5)
+            # Split string and save coordinates
+            for i in range(5):
+                aux = split(split_com[i], ":")
+                new_split_com[i] = int(aux[1])
+        return new_split_com
+    return 0
+
 def split(string, split_char):
     str_array = string.split(split_char)
     return str_array
@@ -205,12 +243,28 @@ def main():
 
                 if event.key == ctrl_map_key['Up']:
                     draw_highlight(highlight_surface, map_pos['Up'])
+                    next_pos = cur_pos
+                    next_pos[0] += 100
+                    if move_to_pos(ser, next_pos, 'up') == 1:
+                        cur_pos = next_pos
                 if event.key == ctrl_map_key['Down']:
                     draw_highlight(highlight_surface, map_pos['Down'])
+                    next_pos = cur_pos
+                    next_pos[0] -= 100
+                    if move_to_pos(ser, next_pos, 'down') == 1:
+                        cur_pos = next_pos
                 if event.key == ctrl_map_key['Left']:
                     draw_highlight(highlight_surface, map_pos['Left'])
+                    next_pos = cur_pos
+                    next_pos[1] += 100
+                    if move_to_pos(ser, next_pos, 'left') == 1:
+                        cur_pos = next_pos
                 if event.key == ctrl_map_key['Right']:
                     draw_highlight(highlight_surface, map_pos['Right'])
+                    next_pos = cur_pos
+                    next_pos[1] -= 100
+                    if move_to_pos(ser, next_pos, 'right') == 1:
+                        cur_pos = next_pos
 
                 if event.key == ctrl_map_key['L1']:
                     draw_highlight(highlight_surface, map_pos['L1'])
@@ -241,6 +295,8 @@ def main():
                     draw_highlight(highlight_surface, map_pos['Triangle'])
                 if joystick.get_button(ctrl_map_ps3_btn['Square']):
                     draw_highlight(highlight_surface, map_pos['Square'])
+                    cur_pos = get_pos(ser)
+                    print ('Current position:' + str(cur_pos))
                 if joystick.get_button(ctrl_map_ps3_btn['Circle']):
                     if ser != None:    
                         print(del_com)
