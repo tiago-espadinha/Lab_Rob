@@ -7,7 +7,6 @@ import ScorbotCom as scom
 import ScorbotCtrl as sctrl
 import CtrlMapping as ctrlmap
 
-
 def main():
 
     # Initialize serial port communication
@@ -32,11 +31,15 @@ def main():
 
     highlight_surface = pygame.Surface(image.get_size(), pygame.SRCALPHA)
 
+    # Default position [[Base, Shoulder, Elbow, Wrist Pitch, Wrist Roll][X, Y, Z, P, R]]
+    default_pos = [[0, 0, 0, 0, 0],[5000, 100, 8000, 0, 0]]
+    cur_pos = default_pos
+
     # Get controller input
     done = False
     while not done:
-        done = sctrl.get_event(joystick, serial_port, highlight_surface, image)
-
+        done, cur_pos = sctrl.get_event(joystick, serial_port, highlight_surface, image, cur_pos)
+        # TODO: Fix screen update
         # Update controller window
         screen.blit(image, (0,0))
         screen.blit(highlight_surface,(0,0))
