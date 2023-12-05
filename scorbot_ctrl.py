@@ -41,7 +41,8 @@ ctrl_map_key = {'X': pygame.K_k,
                 'Right': pygame.K_d,
                 'Touchpad': pygame.K_c
                 }
-#PS3
+
+# PS3
 # Buttons
 ctrl_map_ps5_btn = {'X': 0, 
                     'Square': 1, 
@@ -82,6 +83,7 @@ ctrl_map_ps5_ax = {'Anlg_L_vert': 0,
                    'Anlg_R_vert': 2,
                    'Anlg_R_vert': 3
                    }
+
 #PS4
 ctrl_map_ps3_btn = {'X': 0, 
                 'Circle': 1, 
@@ -111,6 +113,7 @@ ctrl_map_ps3_ax = {'Anlg_L_vert': 0,
                    'Anlg_L2': 4,
                    'Anlg_R2': 5
                    }
+
 speed = 10
 default_pos = (0,0,0)
 # Commands
@@ -122,6 +125,14 @@ list_com = "LISTPV A31\r"
 del_com = "DELP A31"
 here_com = "HERE A32\r"
 
+# TODO: Add commands for each button
+# Get events from pygame
+def get_event():
+    event = pygame.event.get()
+    return event
+
+
+# Send commands to move robot
 def move_to_pos(serial_port, pos, move_type):
     if move_type == 'up' or move_type == 'down':
         set_pos_com = "SETPVC A31 X " + str(pos[0]) + "\r"
@@ -137,23 +148,28 @@ def move_to_pos(serial_port, pos, move_type):
     recv_com=receive_command(serial_port)
     return 1
 
+
+# Send command to get current position
 def get_pos(serial_port):
     # Save current position
     pos_com = "HERE A31\r"
     send_command(serial_port, pos_com)
     receive_command(serial_port)
     recv_com=receive_command(serial_port)
+
+    # Get current coordinates
     if 'Done' in recv_com:
-        # Get current coordinates
         pos_com = "LISPV A31\r"
         send_command(serial_port, pos_com)
         receive_command(serial_port)
         recv_com=receive_command(serial_port)
+
         if 'Position' in recv_com:
             receive_command(serial_port)
             recv_com=receive_command(serial_port)
             split_com = split(recv_com, " ")
             new_split_com = np.zeros(5)
+
             # Split string and save coordinates
             for i in range(5):
                 aux = split(split_com[i], ":")
@@ -161,36 +177,18 @@ def get_pos(serial_port):
         return new_split_com
     return 0
 
+
+# Split message string
 def split(string, split_char):
     str_array = string.split(split_char)
     return str_array
-# Send command to serial port
-def send_command(port, command):
-    
-    print("Sent: ", command.encode('utf8'))
-    port.write(command.encode('utf8'))
 
-    time.sleep(0.1)
 
-def draw_highlight(highlight_surface, pos):
+# Highlight controller diagram
+def draw_highlight(highlight_surface, position):
     highlight_color = (255, 255, 0) + (180,)
     highlight_radius = 25
-    pygame.draw.circle(highlight_surface, highlight_color, pos, highlight_radius)
-
-# Initialize serial port communication
-def port_init(com_port):
-    baud_rate = 9600
-    try:
-        ser = serial.Serial(com_port, baud_rate, timeout=1)
-    except:
-        print("Failed to connect to serial port.")
-        return None
-    return ser
-
-def receive_command(port):
-    message = port.readline()
-    print("Recived: ", message)
-    return message
+    pygame.draw.circle(highlight_surface, highlight_color, position, highlight_radius)
 
 
 # Initialize controller
@@ -206,11 +204,36 @@ def controller_init():
     return joystick
 
 
+# Initialize serial port communication
+def port_init(port_name):
+    baud_rate = 9600
+    try:
+        serial_port = serial.Serial(port_name, baud_rate, timeout=1)
+    except:
+        print("Failed to connect to serial port.")
+        return None
+    return serial_port
+
+
+# Send command to serial port
+def send_command(port, command):
+    print("Sent: ", command.encode('utf8'))
+    port.write(command.encode('utf8'))
+    time.sleep(0.1)
+    
+    
+# Receive command from serial port
+def receive_command(port):
+    message = port.readline()
+    print("Recived: ", message)
+    return message
+
+
 def main():
 
     # Initialize serial port communication
-    com_port = 'COM7'
-    ser = port_init(com_port)
+    port_name = 'COM7'
+    serial_port = port_init(port_name)
 
     # Initialize pygame and controller
     pygame.init()
@@ -228,9 +251,11 @@ def main():
 
     highlight_surface = pygame.Surface(image.get_size(), pygame.SRCALPHA)
 
+    # Get controller input
     done = False
     while not done:
         for event in pygame.event.get():
+            # Keyboard input
             if event.type == pygame.KEYDOWN:
                 if event.key == ctrl_map_key['Triangle']:
                     draw_highlight(highlight_surface, map_pos['Triangle'])
@@ -243,28 +268,13 @@ def main():
 
                 if event.key == ctrl_map_key['Up']:
                     draw_highlight(highlight_surface, map_pos['Up'])
-                    next_pos = cur_pos
-                    next_pos[0] += 100
-                    if move_to_pos(ser, next_pos, 'up') == 1:
-                        cur_pos = next_pos
                 if event.key == ctrl_map_key['Down']:
                     draw_highlight(highlight_surface, map_pos['Down'])
-                    next_pos = cur_pos
-                    next_pos[0] -= 100
-                    if move_to_pos(ser, next_pos, 'down') == 1:
-                        cur_pos = next_pos
                 if event.key == ctrl_map_key['Left']:
                     draw_highlight(highlight_surface, map_pos['Left'])
-                    next_pos = cur_pos
-                    next_pos[1] += 100
-                    if move_to_pos(ser, next_pos, 'left') == 1:
-                        cur_pos = next_pos
                 if event.key == ctrl_map_key['Right']:
                     draw_highlight(highlight_surface, map_pos['Right'])
-                    next_pos = cur_pos
-                    next_pos[1] -= 100
-                    if move_to_pos(ser, next_pos, 'right') == 1:
-                        cur_pos = next_pos
+                    
 
                 if event.key == ctrl_map_key['L1']:
                     draw_highlight(highlight_surface, map_pos['L1'])
@@ -283,34 +293,36 @@ def main():
                     draw_highlight(highlight_surface, map_pos['PS'])
                 if event.key == ctrl_map_key['Touchpad']:
                     draw_highlight(highlight_surface, map_pos['Touchpad'])
-
+            
+            # Controller input
             if event.type == pygame.JOYBUTTONDOWN:
                 if joystick.get_button(ctrl_map_ps3_btn['Triangle']):
-                    if ser != None:
-                        send_command(ser, here_com)
-                        receive_command(ser)
-                        receive_command(ser)
-                        receive_command(ser)
-                        receive_command(ser)
+                    if serial_port != None:
+                        send_command(serial_port, here_com)
+                        receive_command(serial_port)
+                        receive_command(serial_port)
+                        receive_command(serial_port)
+                        receive_command(serial_port)
                     draw_highlight(highlight_surface, map_pos['Triangle'])
                 if joystick.get_button(ctrl_map_ps3_btn['Square']):
                     draw_highlight(highlight_surface, map_pos['Square'])
-                    cur_pos = get_pos(ser)
-                    print ('Current position:' + str(cur_pos))
+                    if serial_port != None:   
+                        cur_pos = get_pos(serial_port)
+                        print ('Current position:' + str(cur_pos))
                 if joystick.get_button(ctrl_map_ps3_btn['Circle']):
-                    if ser != None:    
+                    if serial_port != None:    
                         print(del_com)
-                        send_command(ser, del_com)               
+                        send_command(serial_port, del_com)               
                     draw_highlight(highlight_surface, map_pos['Circle'])
                 if joystick.get_button(ctrl_map_ps3_btn['X']):
-                    if ser != None:
-                        send_command(ser, list_com)
+                    if serial_port != None:
+                        send_command(serial_port, list_com)
             
-                        info = receive_command(ser)
-                        receive_command(ser)
-                        receive_command(ser)
-                        receive_command(ser)
-                        receive_command(ser)
+                        info = receive_command(serial_port)
+                        receive_command(serial_port)
+                        receive_command(serial_port)
+                        receive_command(serial_port)
+                        receive_command(serial_port)
                         info_array = split(info, " ")
                         final_array = np.zeros(len(info_array))
                         print("INFO: ", info_array)
@@ -320,19 +332,43 @@ def main():
                         print(final_array)
                     draw_highlight(highlight_surface, map_pos['X'])
 
-                # if joystick.get_button(ctrl_map_ps3['Up']):
-                #     draw_highlight(highlight_surface, map_pos['Up'])
-                # if joystick.get_button(ctrl_map_ps3['Down']):
-                #     draw_highlight(highlight_surface, map_pos['Down'])
-                # if joystick.get_button(ctrl_map_ps3['Left']):
-                #     draw_highlight(highlight_surface, map_pos['Left'])
-                # if joystick.get_button(ctrl_map_ps3['Right']):
-                #     draw_highlight(highlight_surface, map_pos['Right'])
+                if joystick.get_button(ctrl_map_ps3_btn['Up']):
+                    draw_highlight(highlight_surface, map_pos['Up'])
+                    next_pos = cur_pos
+                    next_pos[0] += 100
+                    if move_to_pos(serial_port, next_pos, 'up') == 1:
+                        cur_pos = next_pos
+                if joystick.get_button(ctrl_map_ps3_btn['Down']):
+                    draw_highlight(highlight_surface, map_pos['Down'])
+                    next_pos = cur_pos
+                    next_pos[0] -= 100
+                    if move_to_pos(serial_port, next_pos, 'down') == 1:
+                        cur_pos = next_pos
+                if joystick.get_button(ctrl_map_ps3_btn['Left']):
+                    draw_highlight(highlight_surface, map_pos['Left'])
+                    next_pos = cur_pos
+                    next_pos[1] += 100
+                    if move_to_pos(serial_port, next_pos, 'left') == 1:
+                        cur_pos = next_pos
+                if joystick.get_button(ctrl_map_ps3_btn['Right']):
+                    draw_highlight(highlight_surface, map_pos['Right'])
+                    next_pos = cur_pos
+                    next_pos[1] -= 100
+                    if move_to_pos(serial_port, next_pos, 'right') == 1:
+                        cur_pos = next_pos
 
                 if joystick.get_button(ctrl_map_ps3_btn['L1']):
                     draw_highlight(highlight_surface, map_pos['L1'])
+                    next_pos = cur_pos
+                    next_pos[2] -= 100
+                    if move_to_pos(serial_port, next_pos, 'forward') == 1:
+                        cur_pos = next_pos
                 if joystick.get_button(ctrl_map_ps3_btn['R1']):
                     draw_highlight(highlight_surface, map_pos['R1'])
+                    next_pos = cur_pos
+                    next_pos[2] += 100
+                    if move_to_pos(serial_port, next_pos, 'backward') == 1:
+                        cur_pos = next_pos
                 if joystick.get_button(ctrl_map_ps3_btn['L3']):
                     draw_highlight(highlight_surface, map_pos['L3'])
                 if joystick.get_button(ctrl_map_ps3_btn['R3']):
@@ -353,6 +389,7 @@ def main():
             if event.type == pygame.QUIT:
                 done = True
 
+        # Update controller window
         screen.blit(image, (0,0))
         screen.blit(highlight_surface,(0,0))
         pygame.display.flip()
