@@ -81,7 +81,7 @@ Analog Right
 ctrl_map_ps5_ax = {'Anlg_L_vert': 0,
                    'Anlg_L_horz': 1,
                    'Anlg_R_vert': 2,
-                   'Anlg_R_vert': 3
+                   'Anlg_R_horz': 3
                    }
 
 #PS4
@@ -106,16 +106,17 @@ ctrl_map_ps3_btn = {'X': 0,
 
                 'Touchpad': 15
                 }
-ctrl_map_ps3_ax = {'Anlg_L_vert': 0,
-                   'Anlg_L_horz': 1,
-                   'Anlg_R_vert': 2,
+ctrl_map_ps3_ax = {'Anlg_L_vert': 1,
+                   'Anlg_L_horz': 0,
                    'Anlg_R_vert': 3,
+                   'Anlg_R_horz': 2,
                    'Anlg_L2': 4,
                    'Anlg_R2': 5
                    }
 
 speed = 10
-default_pos = (0,0,0)
+# Default position [X, Y, Z, P, R]
+default_pos = [5000, 100, 8000, 0, 0]
 # Commands
 
 speed_com = "SPEED " + str(speed)
@@ -124,12 +125,6 @@ teach_com = "TEACH "
 list_com = "LISTPV A31\r"
 del_com = "DELP A31"
 here_com = "HERE A32\r"
-
-# TODO: Add commands for each button
-# Get events from pygame
-def get_event():
-    event = pygame.event.get()
-    return event
 
 
 # Send commands to move robot
@@ -143,7 +138,7 @@ def move_to_pos(serial_port, pos, move_type):
     send_command(serial_port, set_pos_com)
     receive_command(serial_port)
     recv_com=receive_command(serial_port)
-    send_command(serial_port, "MOVED A31\r")
+    send_command(serial_port, "MOVE A31 100\r")
     receive_command(serial_port)
     recv_com=receive_command(serial_port)
     return 1
@@ -159,7 +154,7 @@ def get_pos(serial_port):
 
     # Get current coordinates
     if 'Done' in recv_com:
-        pos_com = "LISPV A31\r"
+        pos_com = "LISTPV A31\r"
         send_command(serial_port, pos_com)
         receive_command(serial_port)
         recv_com=receive_command(serial_port)
@@ -167,14 +162,14 @@ def get_pos(serial_port):
         if 'Position' in recv_com:
             receive_command(serial_port)
             recv_com=receive_command(serial_port)
-            split_com = split(recv_com, " ")
-            new_split_com = np.zeros(5)
+            split_com = split(recv_com, "   ")
+            new_split_com = np.zeros(5, dtype=int)
 
             # Split string and save coordinates
             for i in range(5):
                 aux = split(split_com[i], ":")
                 new_split_com[i] = int(aux[1])
-        return new_split_com
+            return new_split_com
     return 0
 
 
@@ -225,6 +220,7 @@ def send_command(port, command):
 # Receive command from serial port
 def receive_command(port):
     message = port.readline()
+    message = message.decode('utf8')
     print("Recived: ", message)
     return message
 
@@ -295,6 +291,40 @@ def main():
                     draw_highlight(highlight_surface, map_pos['Touchpad'])
             
             # Controller input
+            if event.type == pygame.JOYAXISMOTION:
+                if joystick.get_axis(ctrl_map_ps3_ax['Anlg_L_vert']) < -0.5:
+                    draw_highlight(highlight_surface, map_pos['Up'])
+                    next_pos = cur_pos
+                    next_pos[0] += 100
+                    if move_to_pos(serial_port, next_pos, 'up') == 1:
+                        cur_pos = next_pos
+                if joystick.get_axis(ctrl_map_ps3_ax['Anlg_L_vert']) > 0.5:
+                    draw_highlight(highlight_surface, map_pos['Down'])
+                    next_pos = cur_pos
+                    next_pos[0] -= 100
+                    if move_to_pos(serial_port, next_pos, 'down') == 1:
+                        cur_pos = next_pos
+                if joystick.get_axis(ctrl_map_ps3_ax['Anlg_L_horz']) < -0.5:
+                    draw_highlight(highlight_surface, map_pos['Left'])
+                    next_pos = cur_pos
+                    next_pos[1] += 100
+                    if move_to_pos(serial_port, next_pos, 'left') == 1:
+                        cur_pos = next_pos
+                if joystick.get_axis(ctrl_map_ps3_ax['Anlg_L_horz']) > 0.5:
+                    draw_highlight(highlight_surface, map_pos['Right'])
+                    next_pos = cur_pos
+                    next_pos[1] -= 100
+                    if move_to_pos(serial_port, next_pos, 'right') == 1:
+                        cur_pos = next_pos
+                if joystick.get_axis(ctrl_map_ps3_ax['Anlg_R_vert']) < -0.5:
+                    draw_highlight(highlight_surface, map_pos['Triangle'])
+                if joystick.get_axis(ctrl_map_ps3_ax['Anlg_R_vert']) > 0.5:
+                    draw_highlight(highlight_surface, map_pos['X'])
+                if joystick.get_axis(ctrl_map_ps3_ax['Anlg_R_horz']) < -0.5:
+                    draw_highlight(highlight_surface, map_pos['Square'])
+                if joystick.get_axis(ctrl_map_ps3_ax['Anlg_R_horz']) > 0.5:
+                    draw_highlight(highlight_surface, map_pos['Circle'])
+
             if event.type == pygame.JOYBUTTONDOWN:
                 if joystick.get_button(ctrl_map_ps3_btn['Triangle']):
                     if serial_port != None:
