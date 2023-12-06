@@ -80,6 +80,8 @@ def get_event(joystick, serial_port, highlight_surface, image, cur_pos):
             # Controller input
             # Analog input
             # TODO: Avoid spamming
+            # TODO: Fix sensitivity
+            # TODO: Fix movement limiters
             if event.type == pygame.JOYAXISMOTION:
                 
                 next_pos = cur_pos

@@ -46,35 +46,35 @@ def receive_command(port):
 # Send command to get current position
 def get_position(serial_port):
 
-    save_pos_com = "HERE " + pos_var + "\r"
     create_pos_com = "DEFP " + pos_var + "\r"
+    save_pos_com = "HERE " + pos_var + "\r"
     read_pos_com = "LISTPV " + pos_var + "\r"
 
     if serial_port is not None:
+        # TODO: Check order "DEFP", "HERE", "LISTPV"
+        # Create variable to store position
+        send_command(serial_port, create_pos_com)
+        receive_command(serial_port)
+        recv_com = receive_command(serial_port)
+
         # Save current position
         send_command(serial_port, save_pos_com)
         receive_command(serial_port)
         recv_com = receive_command(serial_port)
 
-        # Create variable if it doesn't exist
-        if not 'Done' in recv_com:
-            send_command(serial_port, create_pos_com)
-            receive_command(serial_port)
-            recv_com = receive_command(serial_port)
-
-        # Get current coordinates
         if 'Done' in recv_com:
+            # Get current coordinates
             send_command(serial_port, read_pos_com)
             receive_command(serial_port)
             recv_com = receive_command(serial_port)
 
             if 'Position' in recv_com:
+                # Split string and save coordinates
                 coord_array = np.zeros((2,5), dtype=int)
                 for i in range(2):
                     recv_com = receive_command(serial_port)
                     coord_split = recv_com.split("   ")
 
-                    # Split string and save coordinates
                     for j in range(5):
                         aux = coord_split[j].split(":")
                         coord_array[i][j] = int(aux[1])
@@ -85,8 +85,8 @@ def get_position(serial_port):
     
     # Debug mode
     else:
-        print("\nSent: " + save_pos_com)
-        print("Sent: " + create_pos_com)
+        print("\nSent: " + create_pos_com)
+        print("Sent: " + save_pos_com)
         print("Sent: " + read_pos_com + "\n")
         return sctrl.default_pos
 
@@ -99,7 +99,9 @@ def move_to_pos(serial_port):
         send_command(serial_port, move_com)
         receive_command(serial_port)
         recv_com = receive_command(serial_port)
-        # TODO: Check if robot moved correctly
+        if not 'Done' in recv_com:
+            print("Failed to move robot.")
+            return 0
     
     # Debug mode
     else:
@@ -149,7 +151,8 @@ def update_pos(serial_port, coord, axis, mode='XYZ'):
             send_command(serial_port, set_pos_com)
             receive_command(serial_port)
             recv_com = receive_command(serial_port)
-            # TODO: Check if position was set correctly
+            if not 'Done' in recv_com:
+                print("Failed to update position.")
 
         # Debug mode
         else:
