@@ -230,6 +230,34 @@ def get_event(joystick, serial_port, highlight_surface, image, cur_pos):
                     scom.update_pos(serial_port, next_pos, 'Z')
                     if scom.move_to_pos(serial_port) == 1:
                         cur_pos = next_pos
+                
+                # TODO: Clean code
+                # TODO: Fix Image size
+                if joystick.get_button(ctrlmap.ctrl_map_btn['Start']):
+                    draw_highlight(highlight_surface, ctrlmap.map_position['Start'])
+                    # Load image
+                    help_image_path = 'Images/PS3_ctrl_help.jpg'
+                    help_image = pygame.image.load(help_image_path)
+                    width, height = help_image.get_size()
+
+                    screen = pygame.display.set_mode((width, height))
+                    pygame.display.set_caption('Controller Help')
+                    screen.blit(help_image, (0,0))
+                    pygame.display.flip()
+                    while True:
+                        event2 = pygame.event.wait()
+                        if event2.type == pygame.QUIT:
+                            return True, cur_pos
+                        elif event2.type == pygame.JOYBUTTONDOWN:
+                            if joystick.get_button(ctrlmap.ctrl_map_btn['Start']):
+                                # Close help screen
+                                width, height = image.get_size()
+
+                                screen = pygame.display.set_mode((width, height))
+                                pygame.display.set_caption('Controller Mapper')
+                                screen.blit(help_image, (0,0))
+                                pygame.display.flip()
+                                break#pygame.quit()
 
             # Clear Mapping Screen
             if event.type == pygame.KEYUP or event.type == pygame.JOYBUTTONUP:

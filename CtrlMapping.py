@@ -99,9 +99,9 @@ elif controller == "PS4":
                     'Square': 2, 
                     'Triangle': 3, 
 
-                    'Share': 4, 
+                    'Select': 4, 
                     'PS': 5, 
-                    'Options': 6, 
+                    'Start': 6, 
 
                     'L3': 7, 
                     'R3': 8, 
