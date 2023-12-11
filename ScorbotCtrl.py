@@ -43,6 +43,7 @@ def controller_init():
 
 # Get controller input
 def get_event(joystick, serial_port, highlight_surface, image, cur_pos, count):
+    global sensitivity
     for event in pygame.event.get():
             # Keyboard input
             count += 1
@@ -240,6 +241,11 @@ def get_event(joystick, serial_port, highlight_surface, image, cur_pos, count):
                 
                 # TODO: Clean code
                 # TODO: Fix Image size
+                if joystick.get_button(ctrlmap.ctrl_map_btn['Select']):
+                    draw_highlight(highlight_surface, ctrlmap.map_position['Select'])
+                    sensitivity = (sensitivity + 1) % 3
+                    print("Sensitivity: " + str(sensitivity_array[sensitivity]))
+
                 if joystick.get_button(ctrlmap.ctrl_map_btn['Start']):
                     draw_highlight(highlight_surface, ctrlmap.map_position['Start'])
                     # Load image

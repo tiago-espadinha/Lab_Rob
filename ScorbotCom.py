@@ -92,7 +92,7 @@ def get_position(serial_port):
         print("\nSent: " + create_pos_com)
         print("Sent: " + save_pos_com)
         print("Sent: " + read_pos_com + "\n")
-        return sctrl.default_pos
+        return list(list(item) for item in sctrl.default_pos)
 
 # Moves robot
 def move_to_pos(serial_port):
