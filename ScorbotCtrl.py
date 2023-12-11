@@ -7,7 +7,13 @@ import ScorbotCom as scom
 import ScorbotCtrl as sctrl
 import CtrlMapping as ctrlmap
 
-default_pos = [[0, 0, 0, 0, 0],[5000, 100, 8000, 0, 0]]
+default_pos = ((0, 0, 0, 0, 0),(5000, 100, 8000, 0, 0))
+default_pos_cam1 = ((-860, -14850, -430, -27000, -2930),(3100, -540, 7900, -200, -480)) # Camera position to see robot
+default_pos_cam2 = ((-300, -15720, -28440, -4050, -2720),(2980, -410, 2810, -540, -460)) # Camera position to see gelatin
+
+
+
+
 # Movement step size
 sensitivity_array = [10, 100, 500]
 sensitivity = 1
@@ -36,9 +42,10 @@ def controller_init():
 
 
 # Get controller input
-def get_event(joystick, serial_port, highlight_surface, image, cur_pos):
+def get_event(joystick, serial_port, highlight_surface, image, cur_pos, count):
     for event in pygame.event.get():
             # Keyboard input
+            count += 1
             if event.type == pygame.KEYDOWN:
                 if event.key == ctrlmap.ctrl_map_key['Triangle']:
                     draw_highlight(highlight_surface, ctrlmap.map_position['Triangle'])
@@ -82,7 +89,7 @@ def get_event(joystick, serial_port, highlight_surface, image, cur_pos):
             # TODO: Avoid spamming
             # TODO: Fix sensitivity
             # TODO: Fix movement limiters
-            if event.type == pygame.JOYAXISMOTION:
+            if event.type == pygame.JOYAXISMOTION and count % 200 == 0:
                 
                 next_pos = cur_pos
 
@@ -172,7 +179,7 @@ def get_event(joystick, serial_port, highlight_surface, image, cur_pos):
                 # Move to default position
                 if joystick.get_button(ctrlmap.ctrl_map_btn['Circle']):             
                     draw_highlight(highlight_surface, ctrlmap.map_position['Circle'])
-                    next_pos = default_pos
+                    next_pos = list(list(item) for item in default_pos)
                     scom.update_pos(serial_port, next_pos, 'ALL')
                     if scom.move_to_pos(serial_port) == 1:
                         cur_pos = next_pos
@@ -247,7 +254,7 @@ def get_event(joystick, serial_port, highlight_surface, image, cur_pos):
                     while True:
                         event2 = pygame.event.wait()
                         if event2.type == pygame.QUIT:
-                            return True, cur_pos
+                            return True, cur_pos, count
                         elif event2.type == pygame.JOYBUTTONDOWN:
                             if joystick.get_button(ctrlmap.ctrl_map_btn['Start']):
                                 # Close help screen
@@ -264,5 +271,5 @@ def get_event(joystick, serial_port, highlight_surface, image, cur_pos):
                 highlight_surface = pygame.Surface(image.get_size(), pygame.SRCALPHA)
 
             if event.type == pygame.QUIT:
-                return True, cur_pos
-    return False, cur_pos
+                return True, cur_pos, count
+    return False, cur_pos, count

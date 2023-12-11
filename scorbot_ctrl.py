@@ -32,13 +32,14 @@ def main():
     highlight_surface = pygame.Surface(image.get_size(), pygame.SRCALPHA)
 
     # Default position [[Base, Shoulder, Elbow, Wrist Pitch, Wrist Roll][X, Y, Z, P, R]]
-    default_pos = [[0, 0, 0, 0, 0],[5000, 100, 8000, 0, 0]]
-    cur_pos = default_pos
+    default_pos = ((0, 0, 0, 0, 0),(5000, 100, 8000, 0, 0))
+    cur_pos = list(list(item) for item in default_pos)
 
     # Get controller input
     done = False
+    count = 0
     while not done:
-        done, cur_pos = sctrl.get_event(joystick, serial_port, highlight_surface, image, cur_pos)
+        done, cur_pos, count = sctrl.get_event(joystick, serial_port, highlight_surface, image, cur_pos, count)
         # TODO: Fix screen update
         # Update controller window
         screen.blit(image, (0,0))

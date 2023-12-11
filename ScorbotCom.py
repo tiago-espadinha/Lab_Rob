@@ -71,14 +71,18 @@ def get_position(serial_port):
             if 'Position' in recv_com:
                 # Split string and save coordinates
                 coord_array = np.zeros((2,5), dtype=int)
-                for i in range(2):
-                    recv_com = receive_command(serial_port)
-                    coord_split = recv_com.split("   ")
+                
+                recv_com1 = receive_command(serial_port)
+                recv_com2 = receive_command(serial_port)
+                coord_split1 = recv_com1.split(":")
+                coord_split2 = recv_com2.split(":")
 
-                    for j in range(5):
-                        aux = coord_split[j].split(":")
-                        coord_array[i][j] = int(aux[1])
-                    return coord_array
+                for j in range(1, 6):
+                    aux1 = coord_split1[j][:-2]
+                    aux2 = coord_split2[j][:-2]
+                    coord_array[0][j-1] = int(aux1)
+                    coord_array[1][j-1] = int(aux2)
+                return coord_array
                         
         print("Failed to get position.")
         return None
