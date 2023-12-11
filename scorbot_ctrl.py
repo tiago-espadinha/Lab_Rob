@@ -2,6 +2,8 @@ import pygame
 import serial
 import time
 import numpy as np
+import pyautogui
+
 
 
 map_pos = { 'X': (492,260), 
@@ -202,6 +204,7 @@ def controller_init():
 # Initialize serial port communication
 def port_init(port_name):
     baud_rate = 9600
+    print(port_name)
     try:
         serial_port = serial.Serial(port_name, baud_rate, timeout=1)
     except:
@@ -220,15 +223,17 @@ def send_command(port, command):
 # Receive command from serial port
 def receive_command(port):
     message = port.readline()
-    message = message.decode('utf8')
-    print("Recived: ", message)
+    if message != None:
+        message = message.decode('utf8')
+
+        print("Recived: ", message)
     return message
 
 
 def main():
 
     # Initialize serial port communication
-    port_name = 'COM7'
+    port_name = 'COM4'
     serial_port = port_init(port_name)
 
     # Initialize pygame and controller
@@ -246,6 +251,25 @@ def main():
     pygame.display.set_caption('Controller Mapper')
 
     highlight_surface = pygame.Surface(image.get_size(), pygame.SRCALPHA)
+
+
+
+    #manual mode
+    pyautogui.keyDown('alt')
+    pyautogui.press('m')
+    pyautogui.keyUp('alt')
+
+    receive_command(serial_port)
+    receive_command(serial_port)
+    receive_command(serial_port)
+    receive_command(serial_port)
+
+    pyautogui.press('c')
+    receive_command(serial_port)
+    receive_command(serial_port)
+
+
+
 
     # Get controller input
     done = False
@@ -364,10 +388,13 @@ def main():
 
                 if joystick.get_button(ctrl_map_ps3_btn['Up']):
                     draw_highlight(highlight_surface, map_pos['Up'])
-                    next_pos = cur_pos
-                    next_pos[0] += 100
-                    if move_to_pos(serial_port, next_pos, 'up') == 1:
-                        cur_pos = next_pos
+                    # next_pos = cur_pos
+                    # next_pos[0] += 100
+                    # if move_to_pos(serial_port, next_pos, 'up') == 1:
+                    #     cur_pos = next_pos
+                    with pyautogui.hold('q'):
+                        time.sleep(0.2)
+
                 if joystick.get_button(ctrl_map_ps3_btn['Down']):
                     draw_highlight(highlight_surface, map_pos['Down'])
                     next_pos = cur_pos
