@@ -2,6 +2,7 @@ import pygame
 import serial
 import time
 import numpy as np
+import pyautogui
 
 import ScorbotCom as scom
 import ScorbotCtrl as sctrl
@@ -10,8 +11,8 @@ import CtrlMapping as ctrlmap
 def main():
 
     # Initialize serial port communication
-    rob1_port = 'COM7'
-    rob2_port = 'COM8'
+    rob1_port = 'COM3'
+    rob2_port = 'COM4'
     serial_rob1 = scom.port_init(rob1_port)
     serial_rob2 = scom.port_init(rob2_port)
     serial_port = serial_rob1
@@ -34,6 +35,31 @@ def main():
     # Default position [[Base, Shoulder, Elbow, Wrist Pitch, Wrist Roll][X, Y, Z, P, R]]
     default_pos = ((0, 0, 0, 0, 0),(5000, 100, 8000, 0, 0))
     cur_pos = list(list(item) for item in default_pos)
+
+
+    #scom.send_command(serial_port, "CON\r")
+    # scom.receive_command(serial_port)
+    # scom.receive_command(serial_port)
+
+    #manual mode
+    # scom.send_command(serial_port, "~\r")
+    # scom.receive_command(serial_port)
+    
+    # recv_com = scom.receive_command(serial_port)
+    # if recv_com != "MANUAL MODE!\r\n":
+    #     scom.send_command(serial_port, "~\r")
+    #     scom.receive_command(serial_port)
+    #     recv_com = scom.receive_command(serial_port)     
+    # scom.receive_command(serial_port)
+    # scom.receive_command(serial_port)
+    # scom.send_command(serial_port, "s\r")
+    # scom.send_command(serial_port, "35\r")
+    # scom.receive_command(serial_port)
+    # scom.receive_command(serial_port)
+    # scom.send_command(serial_port, "c\r")
+    # scom.receive_command(serial_port)
+    # scom.receive_command(serial_port)
+
 
     # Get controller input
     done = False

@@ -39,7 +39,7 @@ def receive_command(port):
         print("Failed to read from serial port.")
         return None
     message = message.decode('utf8')
-    print("Recived: ", message)
+    print("Received: ", message)
     return message
 
 
