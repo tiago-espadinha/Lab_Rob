@@ -233,7 +233,7 @@ def receive_command(port):
 def main():
 
     # Initialize serial port communication
-    port_name = 'COM4'
+    port_name = 'COM3'
     serial_port = port_init(port_name)
 
     # Initialize pygame and controller
@@ -254,19 +254,106 @@ def main():
 
 
 
-    #manual mode
-    pyautogui.keyDown('alt')
-    pyautogui.press('m')
-    pyautogui.keyUp('alt')
+    # #manual mode
+    send_command(serial_port, "~\r")
+    receive_command(serial_port)
+    
+    recv_com = receive_command(serial_port)
+    if recv_com != "MANUAL MODE!\r\n":
+        send_command(serial_port, "~\r")
+        receive_command(serial_port)
+        recv_com = receive_command(serial_port)     
+    receive_command(serial_port)
+    receive_command(serial_port)
+
+    send_command(serial_port, "s\r")
+    send_command(serial_port, "35\r")
 
     receive_command(serial_port)
     receive_command(serial_port)
+
+
+    send_command(serial_port, "c\r")
     receive_command(serial_port)
     receive_command(serial_port)
 
-    pyautogui.press('c')
-    receive_command(serial_port)
-    receive_command(serial_port)
+    # send_command(serial_port, "q\r")
+    
+    # send_command(serial_port, "q\r")
+    # send_command(serial_port, "q\r")
+    # send_command(serial_port, "q\r")
+    # send_command(serial_port, "q\r")
+    # send_command(serial_port, "q\r")
+    # send_command(serial_port, "q\r")
+    # send_command(serial_port, "q\r")
+    # send_command(serial_port, "q\r")
+    # send_command(serial_port, "q\r")
+    # send_command(serial_port, "q\r")
+    # send_command(serial_port, "q\r")
+    # send_command(serial_port, "q\r")
+    # send_command(serial_port, "q\r")
+    # send_command(serial_port, "q\r")
+    # send_command(serial_port, "q\r")
+    # send_command(serial_port, "q\r")
+    # send_command(serial_port, "q\r")
+    # send_command(serial_port, "q\r")
+    # send_command(serial_port, "q\r")
+    # send_command(serial_port, "q\r")
+    # send_command(serial_port, "q\r")
+    # send_command(serial_port, "q\r")
+    # send_command(serial_port, "q\r")
+    # send_command(serial_port, "q\r")
+    # send_command(serial_port, "q\r")
+    # send_command(serial_port, "q\r")
+    # send_command(serial_port, "q\r")
+    # send_command(serial_port, "q\r")
+    # send_command(serial_port, "q\r")
+    # send_command(serial_port, "q\r")
+    # send_command(serial_port, "q\r")
+    # send_command(serial_port, "q\r")
+    # send_command(serial_port, "q\r")
+    # send_command(serial_port, "q\r")
+    # send_command(serial_port, "q\r")
+    # send_command(serial_port, "q\r")
+    # send_command(serial_port, "q\r")
+    # send_command(serial_port, "q\r")
+    # send_command(serial_port, "q\r")
+    send_command(serial_port, "1\r")
+    send_command(serial_port, "1\r")
+    send_command(serial_port, "1\r")
+    send_command(serial_port, "1\r")
+    send_command(serial_port, "1\r")
+    send_command(serial_port, "1\r")
+    send_command(serial_port, "1\r")
+    send_command(serial_port, "1\r")
+    send_command(serial_port, "1\r")
+    send_command(serial_port, "1\r")
+    send_command(serial_port, "1\r")
+    send_command(serial_port, "1\r")
+    send_command(serial_port, "1\r")
+    send_command(serial_port, "1\r")
+    send_command(serial_port, "1\r")
+    send_command(serial_port, "1\r")
+    send_command(serial_port, "1\r")
+    send_command(serial_port, "1\r")
+    send_command(serial_port, "1\r")
+    send_command(serial_port, "1\r")
+    send_command(serial_port, "1\r")
+    send_command(serial_port, "1\r")
+    send_command(serial_port, "1\r")
+    send_command(serial_port, "1\r")
+    send_command(serial_port, "1\r")
+    send_command(serial_port, "1\r")
+    send_command(serial_port, "1\r")
+    send_command(serial_port, "1\r")
+    send_command(serial_port, "1\r")
+    send_command(serial_port, "1\r")
+    send_command(serial_port, "1\r")
+    send_command(serial_port, "1\r")
+    send_command(serial_port, "1\r")
+    send_command(serial_port, "1\r")
+    send_command(serial_port, "1\r")
+
 
 
 
@@ -393,14 +480,18 @@ def main():
                     # if move_to_pos(serial_port, next_pos, 'up') == 1:
                     #     cur_pos = next_pos
                     with pyautogui.hold('q'):
-                        time.sleep(0.2)
+                        time.sleep(0.5)
 
                 if joystick.get_button(ctrl_map_ps3_btn['Down']):
                     draw_highlight(highlight_surface, map_pos['Down'])
-                    next_pos = cur_pos
-                    next_pos[0] -= 100
-                    if move_to_pos(serial_port, next_pos, 'down') == 1:
-                        cur_pos = next_pos
+                    # next_pos = cur_pos
+                    # next_pos[0] -= 100
+                    # if move_to_pos(serial_port, next_pos, 'down') == 1:
+                    #     cur_pos = next_pos
+                    with pyautogui.hold('1'):
+                        
+                        time.sleep(0.5)
+
                 if joystick.get_button(ctrl_map_ps3_btn['Left']):
                     draw_highlight(highlight_surface, map_pos['Left'])
                     next_pos = cur_pos
