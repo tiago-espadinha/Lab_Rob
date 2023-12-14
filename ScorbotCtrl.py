@@ -7,7 +7,7 @@ import ScorbotCom as scom
 import ScorbotCtrl as sctrl
 import CtrlMapping as ctrlmap
 
-default_pos = ((0, 0, 0, 0, 0),(5000, 100, 8000, 0, 0))
+default_pos = ((1300, -11700, -5480, -10300, 2140),(5000, 100, 8000, 0, 0))
 default_pos_cam1 = ((-860, -14850, -430, -27000, -2930),(3100, -540, 7900, -200, -480)) # Camera position to see robot
 default_pos_cam2 = ((-300, -15720, -28440, -4050, -2720),(2980, -410, 2810, -540, -460)) # Camera position to see gelatin
 
@@ -169,18 +169,19 @@ def get_event(joystick, serial_port, highlight_surface, image, cur_pos, count):
                     if scom.move_to_pos(serial_port) == 1:
                         cur_pos = next_pos
 
-                # Pitch movement
+                # Pitch movement joint
                 if joystick.get_axis(ctrlmap.ctrl_map_ax['Anlg_R_vert']) < -deadzone:
+                    scom.get_position(serial_port)
                     draw_highlight(highlight_surface, ctrlmap.map_position['Triangle'])
-                    next_pos[1][3] += int(sensitivity_array[sensitivity]/2)
-                    scom.update_pos(serial_port, next_pos, 'P')
+                    next_pos[0][3] += int(sensitivity_array[sensitivity]*10)
+                    scom.update_pos(serial_port, next_pos, '4', 'Joint')
                     if scom.move_to_pos(serial_port) == 1:
                         cur_pos = next_pos
 
                 if joystick.get_axis(ctrlmap.ctrl_map_ax['Anlg_R_vert']) > deadzone:
                     draw_highlight(highlight_surface, ctrlmap.map_position['X'])
-                    next_pos[1][3] -= int(sensitivity_array[sensitivity]/2)
-                    scom.update_pos(serial_port, next_pos, 'P')
+                    next_pos[0][3] -= int(sensitivity_array[sensitivity]*10)
+                    scom.update_pos(serial_port, next_pos, '4', mode = 'Joint')
                     if scom.move_to_pos(serial_port) == 1:
                         cur_pos = next_pos
 
