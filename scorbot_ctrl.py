@@ -253,6 +253,7 @@ def main():
     highlight_surface = pygame.Surface(image.get_size(), pygame.SRCALPHA)
 
 
+<<<<<<< Updated upstream
 
     # #manual mode
     send_command(serial_port, "~\r")
@@ -356,7 +357,47 @@ def main():
 
 
 
+=======
+    # Initialize robot
+    
+    scom.send_command(serial_port, "CON\r")
+    scom.receive_command(serial_port)
+    scom.receive_command(serial_port)
 
+    scom.send_command(serial_port, "~\r")
+    scom.receive_command(serial_port)
+    
+    recv_com = scom.receive_command(serial_port)
+    if recv_com == "MANUAL MODE!\r\n":
+        scom.send_command(serial_port, "~\r")
+        scom.receive_command(serial_port)
+        recv_com = scom.receive_command(serial_port)   
+
+    # Initialize position
+    cur_pos = scom.get_position(serial_port)
+    print ('Current position:' + str(cur_pos))
+    
+    scom.send_command_manual(serial_port, "s\r")
+    scom.send_command_manual(serial_port, "5\r")
+    scom.receive_command(serial_port)
+    scom.receive_command(serial_port)
+
+    scom.send_command_manual(serial_port, "~\r")
+    scom.receive_command(serial_port)
+    scom.receive_command(serial_port)
+    scom.receive_command(serial_port)
+
+    # scom.send_command_manual(serial_port, "c\r")
+    # scom.receive_command(serial_port)
+    # scom.receive_command(serial_port)
+>>>>>>> Stashed changes
+
+
+
+
+    scom.send_command(serial_port, "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq\r")
+
+    
 
     # Get controller input
     done = False
