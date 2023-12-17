@@ -46,6 +46,19 @@ def controller_init():
 def get_event(joystick, serial_port, highlight_surface, image, cur_pos, count):
     global sensitivity
     next_pos = cur_pos
+
+
+    # Z axis movement
+    if joystick.get_button(ctrlmap.ctrl_map_btn['L1']):
+        print("L1 pressed")
+        draw_highlight(highlight_surface, ctrlmap.map_position['L1'])
+        scom.send_command_manual(serial_port, "eeeeeeeeeeeeeeeeeeeeeeeeeeee\r")
+        time.sleep(0.1)
+    if joystick.get_button(ctrlmap.ctrl_map_btn['R1']):
+        draw_highlight(highlight_surface, ctrlmap.map_position['R1'])
+        scom.send_command_manual(serial_port, "3333333333333333333333333333\r")
+        time.sleep(0.1)
+
     for event in pygame.event.get():
             # Keyboard input
             count += 1
@@ -198,15 +211,6 @@ def get_event(joystick, serial_port, highlight_surface, image, cur_pos, count):
                 cur_pos = scom.get_position(serial_port)
 
 
-                # Z axis movement
-                while joystick.get_button(ctrlmap.ctrl_map_btn['L1']):
-                    draw_highlight(highlight_surface, ctrlmap.map_position['L1'])
-                    scom.send_command_manual(serial_port, "eeeeeeeeeeeeeeeeeeeeeeeeeeee\r")
-                    time.sleep(0.1)
-
-                while joystick.get_button(ctrlmap.ctrl_map_btn['R1']):
-                    draw_highlight(highlight_surface, ctrlmap.map_position['R1'])
-                    scom.send_command_manual(serial_port, "3333333333333333333333333333\r")
 
                 scom.send_command_manual(serial_port, "~\r")
                 # Switch Robots
