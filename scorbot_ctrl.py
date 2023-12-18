@@ -7,8 +7,17 @@ import pyautogui
 import ScorbotCom as scom
 import ScorbotCtrl as sctrl
 import CtrlMapping as ctrlmap
+import variaveis as var
+# bad point circle
+# impact axis 10
+# tcp worth
+
 
 def main():
+
+    # print(var.var1)
+    # var.var1 = 123
+    # print(var.var1)
 
     # Initialize serial port communication
     rob1_port = 'COM3'

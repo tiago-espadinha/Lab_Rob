@@ -46,7 +46,7 @@ def controller_init():
 def get_event(joystick, serial_port, highlight_surface, image, cur_pos, count):
     global sensitivity
     next_pos = cur_pos
-#    serial_rob1 = serial_port
+    #serial_rob1 = serial_port
 
 
     # Z axis movement
@@ -63,7 +63,6 @@ def get_event(joystick, serial_port, highlight_surface, image, cur_pos, count):
     for event in pygame.event.get():
             # Keyboard input
             count += 1
-            pressed = pygame.key.get_pressed()
 
             if event.type == pygame.KEYDOWN:
                 if event.key == ctrlmap.ctrl_map_key['Triangle']:
@@ -205,6 +204,25 @@ def get_event(joystick, serial_port, highlight_surface, image, cur_pos, count):
             # Button input
             if event.type == pygame.JOYBUTTONDOWN and not (joystick.get_button(ctrlmap.ctrl_map_btn['L1']) or joystick.get_button(ctrlmap.ctrl_map_btn['R1'])):
 
+                
+                if joystick.get_button(ctrlmap.ctrl_map_btn['L3']):
+                    draw_highlight(highlight_surface, ctrlmap.map_position['L3'])
+                    scom.send_command(serial_port, "c\r")
+                    scom.receive_command(serial_port)
+                    scom.receive_command(serial_port)
+                
+                if joystick.get_button(ctrlmap.ctrl_map_btn['R3']):
+                    draw_highlight(highlight_surface, ctrlmap.map_position['R3'])
+                    mode = scom.receive_command(serial_port)
+                    if 'XYZ' in mode:
+                        scom.send_command(serial_port, "j\r")
+                        scom.receive_command(serial_port)
+                        scom.receive_command(serial_port)
+                    else:    
+                        scom.send_command(serial_port, "x\r")
+                        scom.receive_command(serial_port)
+                        scom.receive_command(serial_port)
+                    
 
                 if joystick.get_button(ctrlmap.ctrl_map_btn['Select']):
                     draw_highlight(highlight_surface, ctrlmap.map_position['Select'])
