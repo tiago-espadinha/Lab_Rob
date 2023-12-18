@@ -15,7 +15,7 @@ default_pos_cam2 = ((-300, -15720, -28440, -4050, -2720),(2980, -410, 2810, -540
 
 
 # Movement step size
-sensitivity_array = [10, 100, 500]
+sensitivity_array = [10, 20, 50]
 sensitivity = 1
 
 deadzone = 0.5
@@ -47,7 +47,6 @@ def get_event(joystick, serial_port, highlight_surface, image, cur_pos, count):
     global sensitivity
     next_pos = cur_pos
 #    serial_rob1 = serial_port
-
 
 
     # Z axis movement
@@ -202,10 +201,22 @@ def get_event(joystick, serial_port, highlight_surface, image, cur_pos, count):
                 if joystick.get_axis(ctrlmap.ctrl_map_ax['Anlg_R_horz']) > deadzone:
                     draw_highlight(highlight_surface, ctrlmap.map_position['Circle'])
                     scom.send_command_manual(serial_port, "55555555555\r")
-
+            
             # Button input
-            if event.type == pygame.JOYBUTTONDOWN:
+            if event.type == pygame.JOYBUTTONDOWN and not (joystick.get_button(ctrlmap.ctrl_map_btn['L1']) or joystick.get_button(ctrlmap.ctrl_map_btn['R1'])):
 
+
+                if joystick.get_button(ctrlmap.ctrl_map_btn['Select']):
+                    draw_highlight(highlight_surface, ctrlmap.map_position['Select'])
+                    sensitivity = (sensitivity + 1) % 3
+                    # print("Sensitivity: " + str(sensitivity_array[sensitivity]))
+                    scom.send_command(serial_port, "s\r")
+                    scom.receive_command(serial_port)
+                    speed_com = str(sensitivity_array[sensitivity]) + "\r"
+                    scom.send_command(serial_port, speed_com)
+                    scom.receive_command(serial_port)
+                    scom.receive_command(serial_port)
+                    print(speed_com)
 
                 scom.send_command(serial_port, "~\r")
                 scom.receive_command(serial_port)
@@ -288,10 +299,7 @@ def get_event(joystick, serial_port, highlight_surface, image, cur_pos, count):
                 
                 # TODO: Clean code
                 # TODO: Fix Image size
-                if joystick.get_button(ctrlmap.ctrl_map_btn['Select']):
-                    draw_highlight(highlight_surface, ctrlmap.map_position['Select'])
-                    sensitivity = (sensitivity + 1) % 3
-                    print("Sensitivity: " + str(sensitivity_array[sensitivity]))
+
 
                 if joystick.get_button(ctrlmap.ctrl_map_btn['Start']):
                     draw_highlight(highlight_surface, ctrlmap.map_position['Start'])
@@ -318,7 +326,11 @@ def get_event(joystick, serial_port, highlight_surface, image, cur_pos, count):
                                 screen.blit(help_image, (0,0))
                                 pygame.display.flip()
                                 break#pygame.quit()
+                    
                 scom.send_command_manual(serial_port, "~\r")
+                scom.receive_command(serial_port)
+                scom.receive_command(serial_port)
+                scom.receive_command(serial_port)
 
 
             # Clear Mapping Screen

@@ -39,9 +39,9 @@ def main():
 
      # Initialize robot
     
-    scom.send_command(serial_port, "CON\r")
-    scom.receive_command(serial_port)
-    scom.receive_command(serial_port)
+    # scom.send_command(serial_port, "CON\r")
+    # scom.receive_command(serial_port)
+    # scom.receive_command(serial_port)
 
 
     scom.send_command(serial_port, "~\r")
