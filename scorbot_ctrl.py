@@ -47,7 +47,7 @@ def main():
     cur_pos = list(list(item) for item in default_pos)
 
 
-     # Initialize robot
+     # Initialize robot 1
     
     # scom.send_command(serial_port, "CON\r")
     # scom.receive_command(serial_port)
@@ -93,6 +93,49 @@ def main():
     scom.receive_command(serial_port)
     scom.receive_command(serial_port)
 
+    #initialize robot 2
+
+    serial_port = serial_rob2
+
+    scom.send_command(serial_port, "~\r")
+    scom.receive_command(serial_port)
+    recv_com = scom.receive_command(serial_port)
+    scom.receive_command(serial_port)
+    
+    if recv_com == "MANUAL MODE!\r\n":
+        scom.send_command(serial_port, "~\r")
+        scom.receive_command(serial_port)
+        scom.receive_command(serial_port)
+        scom.receive_command(serial_port)
+        scom.receive_command(serial_port)
+
+
+    # # Initialize position
+    cur_pos = scom.get_position(serial_port)
+    print ('Current position:' + str(cur_pos))
+    
+    scom.send_command_manual(serial_port, "~\r")
+    scom.receive_command(serial_port)
+    scom.receive_command(serial_port)
+    scom.receive_command(serial_port)
+
+    scom.send_command(serial_port, "s\r")
+    scom.receive_command(serial_port)
+
+    scom.send_command(serial_port, "20\r")
+    scom.receive_command(serial_port)
+    scom.receive_command(serial_port)
+
+    scom.send_command_manual(serial_port, "c\r")
+    scom.receive_command(serial_port)
+    scom.receive_command(serial_port)
+
+    scom.send_command(serial_port, "x\r")
+    scom.receive_command(serial_port)
+    scom.receive_command(serial_port)
+
+    serial_port = serial_rob1
+
     #scom.send_command(serial_port, "CON\r")
     # scom.receive_command(serial_port)
     # scom.receive_command(serial_port)
@@ -121,7 +164,7 @@ def main():
     done = False
     count = 0
     while not done:
-        done, cur_pos, count, rob_now = sctrl.get_event(joystick, serial_port, highlight_surface, image, cur_pos, count, serial_rob1, serial_rob2, rob_now)
+        done, cur_pos, count, rob_now, serial_port = sctrl.get_event(joystick, serial_port, highlight_surface, image, cur_pos, count, serial_rob1, serial_rob2, rob_now)
         # TODO: Fix screen update
         # Update controller window
         screen.blit(image, (0,0))

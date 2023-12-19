@@ -112,7 +112,8 @@ def get_event(joystick, serial_port, highlight_surface, image, cur_pos, count, r
                 if joystick.get_axis(ctrlmap.ctrl_map_ax['Anlg_L_vert']) < -deadzone and joystick.get_axis(ctrlmap.ctrl_map_ax['Anlg_L_horz']) > deadzone:
                     draw_highlight(highlight_surface, ctrlmap.map_position['Up'])
                     draw_highlight(highlight_surface, ctrlmap.map_position['Right'])        
-                    scom.send_command(serial_port, "1w1w1w1w1w1w1w\r")      
+                    scom.send_command(serial_port, "1\r")      
+                    scom.send_command(serial_port, "w\r")
 
                 # right down
                 elif joystick.get_axis(ctrlmap.ctrl_map_ax['Anlg_L_vert']) > deadzone and joystick.get_axis(ctrlmap.ctrl_map_ax['Anlg_L_horz']) > deadzone:
@@ -180,12 +181,12 @@ def get_event(joystick, serial_port, highlight_surface, image, cur_pos, count, r
                 if joystick.get_button(ctrlmap.ctrl_map_btn['R3']):
                     draw_highlight(highlight_surface, ctrlmap.map_position['R3'])
                     mode = scom.receive_command(serial_port)
-                    if 'XYZ' in mode:
-                        scom.send_command(serial_port, "j\r")
+                    if 'JOINT' in mode:
+                        scom.send_command(serial_port, "x\r")
                         scom.receive_command(serial_port)
                         scom.receive_command(serial_port)
                     else:    
-                        scom.send_command(serial_port, "x\r")
+                        scom.send_command(serial_port, "j\r")
                         scom.receive_command(serial_port)
                         scom.receive_command(serial_port)
                     
@@ -201,6 +202,19 @@ def get_event(joystick, serial_port, highlight_surface, image, cur_pos, count, r
                     scom.receive_command(serial_port)
                     print(speed_com)
 
+                # Switch Robots
+                if joystick.get_button(ctrlmap.ctrl_map_btn['Triangle']):
+                    draw_highlight(highlight_surface, ctrlmap.map_position['Triangle'])
+                    if rob_now == 1:
+                        print("Switching to robot 2")
+                        serial_port = rob2
+                        rob_now = 2
+                    else:
+                        print("Switching to robot 1")
+                        serial_port = rob1
+                        rob_now = 1
+
+
                 scom.send_command(serial_port, "~\r")
                 scom.receive_command(serial_port)
                 scom.receive_command(serial_port)
@@ -208,15 +222,6 @@ def get_event(joystick, serial_port, highlight_surface, image, cur_pos, count, r
 
                 # cur_pos = scom.get_position(serial_port)
 
-                # Switch Robots
-                if joystick.get_button(ctrlmap.ctrl_map_btn['Triangle']):
-                    draw_highlight(highlight_surface, ctrlmap.map_position['Triangle'])
-                    if rob_now == 1:
-                        serial_port = rob2
-                        rob_now = 2
-                    else:
-                        serial_port = rob1
-                        rob_now = 1
 
                 # Recalibrate
                 if joystick.get_button(ctrlmap.ctrl_map_btn['Square']):
@@ -297,7 +302,7 @@ def get_event(joystick, serial_port, highlight_surface, image, cur_pos, count, r
                     while True:
                         event2 = pygame.event.wait()
                         if event2.type == pygame.QUIT:
-                            return True, cur_pos, count, rob_now
+                            return True, cur_pos, count, rob_now, serial_port
                         elif event2.type == pygame.JOYBUTTONDOWN:
                             if joystick.get_button(ctrlmap.ctrl_map_btn['Start']):
                                 # Close help screen
@@ -320,5 +325,5 @@ def get_event(joystick, serial_port, highlight_surface, image, cur_pos, count, r
                 highlight_surface = pygame.Surface(image.get_size(), pygame.SRCALPHA)
 
             if event.type == pygame.QUIT:
-                return True, cur_pos, count, rob_now
-    return False, cur_pos, count, rob_now
+                return True, cur_pos, count, rob_now, serial_port
+    return False, cur_pos, count, rob_now, serial_port
