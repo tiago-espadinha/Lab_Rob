@@ -15,7 +15,7 @@ default_pos_cam2 = ((-300, -15720, -28440, -4050, -2720),(2980, -410, 2810, -540
 
 
 # Movement step size
-sensitivity_array = [10, 20, 50]
+sensitivity_array = [5, 15, 30]
 sensitivity = 1
 
 deadzone = 0.5
@@ -43,10 +43,9 @@ def controller_init():
 
 
 # Get controller input
-def get_event(joystick, serial_port, highlight_surface, image, cur_pos, count):
+def get_event(joystick, serial_port, highlight_surface, image, cur_pos, count, rob1, rob2, rob_now):
     global sensitivity
     next_pos = cur_pos
-    #serial_rob1 = serial_port
 
 
     # Z axis movement
@@ -241,17 +240,18 @@ def get_event(joystick, serial_port, highlight_surface, image, cur_pos, count):
                 scom.receive_command(serial_port)
                 scom.receive_command(serial_port)
 
-                cur_pos = scom.get_position(serial_port)
+                # cur_pos = scom.get_position(serial_port)
 
 
                 # Switch Robots
                 if joystick.get_button(ctrlmap.ctrl_map_btn['Triangle']):
                     draw_highlight(highlight_surface, ctrlmap.map_position['Triangle'])
-                    # TODO: Implement switching correctly
-                    # if serial_port == serial_rob1:
-                    #     serial_port = serial_rob2
-                    # else:
-                    #     serial_port = serial_rob1
+                    if rob_now == 1:
+                        serial_port = rob2
+                        rob_now = 2
+                    else:
+                        serial_port = rob1
+                        rob_now = 1
 
                 # Recalibrate
                 if joystick.get_button(ctrlmap.ctrl_map_btn['Square']):
@@ -286,34 +286,34 @@ def get_event(joystick, serial_port, highlight_surface, image, cur_pos, count):
 
                 #next_pos = cur_pos
                 # X axis movement
-                if joystick.get_button(ctrlmap.ctrl_map_btn['Up']):
-                    draw_highlight(highlight_surface, ctrlmap.map_position['Up'])
-                    next_pos[1][0] += sensitivity_array[sensitivity]
-                    scom.update_pos(serial_port, next_pos, 'X')
-                    if scom.move_to_pos(serial_port) == 1:
-                        cur_pos = next_pos
+                # if joystick.get_button(ctrlmap.ctrl_map_btn['Up']):
+                #     draw_highlight(highlight_surface, ctrlmap.map_position['Up'])
+                #     next_pos[1][0] += sensitivity_array[sensitivity]
+                #     scom.update_pos(serial_port, next_pos, 'X')
+                #     if scom.move_to_pos(serial_port) == 1:
+                #         cur_pos = next_pos
 
-                if joystick.get_button(ctrlmap.ctrl_map_btn['Down']):
-                    draw_highlight(highlight_surface, ctrlmap.map_position['Down'])
-                    next_pos[1][0] -= sensitivity_array[sensitivity]
-                    scom.update_pos(serial_port, next_pos, 'X')
-                    if scom.move_to_pos(serial_port) == 1:
-                        cur_pos = next_pos
+                # if joystick.get_button(ctrlmap.ctrl_map_btn['Down']):
+                #     draw_highlight(highlight_surface, ctrlmap.map_position['Down'])
+                #     next_pos[1][0] -= sensitivity_array[sensitivity]
+                #     scom.update_pos(serial_port, next_pos, 'X')
+                #     if scom.move_to_pos(serial_port) == 1:
+                #         cur_pos = next_pos
 
-                # Y axis movement
-                if joystick.get_button(ctrlmap.ctrl_map_btn['Left']):
-                    draw_highlight(highlight_surface, ctrlmap.map_position['Left'])
-                    next_pos[1][1] += sensitivity_array[sensitivity]
-                    scom.update_pos(serial_port, next_pos, 'Y')
-                    if scom.move_to_pos(serial_port) == 1:
-                        cur_pos = next_pos
+                # # Y axis movement
+                # if joystick.get_button(ctrlmap.ctrl_map_btn['Left']):
+                #     draw_highlight(highlight_surface, ctrlmap.map_position['Left'])
+                #     next_pos[1][1] += sensitivity_array[sensitivity]
+                #     scom.update_pos(serial_port, next_pos, 'Y')
+                #     if scom.move_to_pos(serial_port) == 1:
+                #         cur_pos = next_pos
 
-                if joystick.get_button(ctrlmap.ctrl_map_btn['Right']):
-                    draw_highlight(highlight_surface, ctrlmap.map_position['Right'])
-                    next_pos[1][1] -= sensitivity_array[sensitivity]
-                    scom.update_pos(serial_port, next_pos, 'Y')
-                    if scom.move_to_pos(serial_port) == 1:
-                        cur_pos = next_pos
+                # if joystick.get_button(ctrlmap.ctrl_map_btn['Right']):
+                #     draw_highlight(highlight_surface, ctrlmap.map_position['Right'])
+                #     next_pos[1][1] -= sensitivity_array[sensitivity]
+                #     scom.update_pos(serial_port, next_pos, 'Y')
+                #     if scom.move_to_pos(serial_port) == 1:
+                #         cur_pos = next_pos
                 
                 # TODO: Clean code
                 # TODO: Fix Image size
@@ -333,7 +333,7 @@ def get_event(joystick, serial_port, highlight_surface, image, cur_pos, count):
                     while True:
                         event2 = pygame.event.wait()
                         if event2.type == pygame.QUIT:
-                            return True, cur_pos, count
+                            return True, cur_pos, count, rob_now
                         elif event2.type == pygame.JOYBUTTONDOWN:
                             if joystick.get_button(ctrlmap.ctrl_map_btn['Start']):
                                 # Close help screen
@@ -356,5 +356,5 @@ def get_event(joystick, serial_port, highlight_surface, image, cur_pos, count):
                 highlight_surface = pygame.Surface(image.get_size(), pygame.SRCALPHA)
 
             if event.type == pygame.QUIT:
-                return True, cur_pos, count
-    return False, cur_pos, count
+                return True, cur_pos, count, rob_now
+    return False, cur_pos, count, rob_now

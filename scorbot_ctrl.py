@@ -25,6 +25,7 @@ def main():
     serial_rob1 = scom.port_init(rob1_port)
     serial_rob2 = scom.port_init(rob2_port)
     serial_port = serial_rob1
+    rob_now = 1
 
     # Initialize pygame and controller
     pygame.init()
@@ -120,7 +121,7 @@ def main():
     done = False
     count = 0
     while not done:
-        done, cur_pos, count = sctrl.get_event(joystick, serial_port, highlight_surface, image, cur_pos, count)
+        done, cur_pos, count, rob_now = sctrl.get_event(joystick, serial_port, highlight_surface, image, cur_pos, count, serial_rob1, serial_rob2, rob_now)
         # TODO: Fix screen update
         # Update controller window
         screen.blit(image, (0,0))
