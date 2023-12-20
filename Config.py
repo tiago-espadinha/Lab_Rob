@@ -16,7 +16,7 @@ cam_port   = 'COM8'
 
 # Movement speed
 speed_array = [5, 15, 30]
-speed_mode = 1
+speed_mode = {'Cam': 1, 'Scalp':1}
 
 # Analog stick deadzone
 deadzone = 0.5

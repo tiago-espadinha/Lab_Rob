@@ -10,16 +10,16 @@ import ScorbotCom as scom
 import ScorbotCtrl as sctrl
 from Config import cam_port, scalp_port, speed_array, speed_mode
 
-# TODO: Avoid double initialization
 # TODO: Check Manual Mode and Robot initialization
 
 # Initialize serial port communication
 serial_cam = scom.port_init(cam_port)
 serial_scalp = scom.port_init(scalp_port)
 serial_cur = 'Cam'
+joint_mode = {'Cam': 'XYZ', 'Scalp': 'XYZ'}
 
 def main():
-    global serial_cam, serial_scalp, serial_cur
+    global serial_cam, serial_scalp, serial_cur, joint_mode
 
     # Initialize pygame and controller
     pygame.init()
@@ -45,25 +45,20 @@ def main():
         recv_com = scom.receive_command(serial_port)
         scom.receive_command(serial_port)
     
-        if recv_com == "MANUAL MODE!\r\n":
+        if recv_com != "MANUAL MODE!\r\n":
             scom.send_command(serial_port, "~\r")
             scom.receive_command(serial_port)
             scom.receive_command(serial_port)
             scom.receive_command(serial_port)
             scom.receive_command(serial_port)
 
-        # Initialize position
-        
-        scom.send_command(serial_port, "~\r")
-        scom.receive_command(serial_port)
-        scom.receive_command(serial_port)
-        scom.receive_command(serial_port)
-
-        scom.set_speed(serial_port, speed_array[speed_mode])
+        scom.set_speed(serial_port, speed_array[speed_mode[serial_cur]])
 
         scom.send_command(serial_port, "x\r")
         scom.receive_command(serial_port)
         scom.receive_command(serial_port)
+
+        joint_mode['Cam'] = 'XYZ'
 
 
         scom.send_command(serial_port, "c\r")
@@ -80,22 +75,14 @@ def main():
         recv_com = scom.receive_command(serial_port)
         scom.receive_command(serial_port)
         
-        if recv_com == "MANUAL MODE!\r\n":
+        if recv_com != "MANUAL MODE!\r\n":
             scom.send_command(serial_port, "~\r")
             scom.receive_command(serial_port)
             scom.receive_command(serial_port)
             scom.receive_command(serial_port)
             scom.receive_command(serial_port)
 
-
-        # # Initialize position
-        
-        scom.send_command(serial_port, "~\r")
-        scom.receive_command(serial_port)
-        scom.receive_command(serial_port)
-        scom.receive_command(serial_port)
-
-        scom.set_speed(serial_port, speed_array[speed_mode])
+        scom.set_speed(serial_port, speed_array[speed_mode[serial_cur]])
 
         # Control enable
         scom.send_command(serial_port, "c\r")
@@ -106,6 +93,7 @@ def main():
         scom.send_command(serial_port, "x\r")
         scom.receive_command(serial_port)
         scom.receive_command(serial_port)
+        joint_mode['Scalp'] = 'XYZ'
 
     serial_port = serial_cam
     serial_cur = 'Cam'
@@ -113,13 +101,16 @@ def main():
     # Get controller input
     done = False
     while not done:
-        done, clr_screen = sctrl.get_event(joystick, highlight_surface, image)
+        screen.blit(image, (0,0))
+        done, clr_screen, text = sctrl.get_event(joystick, highlight_surface, image)
 
         # Update controller window
         if clr_screen:
-                highlight_surface = pygame.Surface(image.get_size(), pygame.SRCALPHA)
-        screen.blit(image, (0,0))
+            highlight_surface = pygame.Surface(image.get_size(), pygame.SRCALPHA)
         screen.blit(highlight_surface,(0,0))
+        screen.blit(text[0],(50,40))
+        screen.blit(text[1],(250,40))
+        screen.blit(text[2],(450,40))
         pygame.display.flip()
         
 

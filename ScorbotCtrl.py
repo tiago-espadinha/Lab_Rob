@@ -13,7 +13,6 @@ from Config import debug, default_pos, speed_array, deadzone
 import Config as cfg
 
 # TODO: Check if robot recalibrated correctly
-# TODO: Have a mode Variable  
 # TODO: Fix movement limiters
 
 count = 0
@@ -50,6 +49,9 @@ def get_event(joystick, highlight_surface, image):
     clr_flag = False
     import scorbot_ctrl as main
     from scorbot_ctrl import serial_cam, serial_scalp
+    screen_text = [pygame.font.SysFont("moonspace",24).render("Mode: " + main.joint_mode[main.serial_cur],1,(0,180,200)), 
+                   pygame.font.SysFont("moonspace",24).render("Robot: " + main.serial_cur,1,(0,180,200)),
+                   pygame.font.SysFont("moonspace",24).render("Speed: " + str(speed_array[cfg.speed_mode[main.serial_cur]]),1,(0,180,200))]
     global count
     if main.serial_cur == 'Cam':
         serial_port = serial_cam
@@ -147,23 +149,30 @@ def get_event(joystick, highlight_surface, image):
                 # Joint/XYZ mode
                 if joystick.get_button(ctrl_map_btn['R3']):
                     draw_highlight(highlight_surface, map_position['R3'])
-                    if serial_port is not None:
-                        mode = scom.receive_command(serial_port)
-                        if 'JOINT' in mode:
+                    if main.joint_mode[main.serial_cur] == 'JOINT':
+                        if serial_port is not None:
                             scom.send_command(serial_port, "x\r")
                             scom.receive_command(serial_port)
                             scom.receive_command(serial_port)
-                        else:    
+                        main.joint_mode[main.serial_cur] = 'XYZ'
+                        print(main.serial_cur + " in XYZ Mode")
+
+                    elif main.joint_mode[main.serial_cur] == 'XYZ':
+                        if serial_port is not None:    
                             scom.send_command(serial_port, "j\r")
                             scom.receive_command(serial_port)
                             scom.receive_command(serial_port)
+                        main.joint_mode[main.serial_cur] = 'JOINT'
+                        print(main.serial_cur + " in Joint Mode")
+
+                    #screen_text[0] = pygame.font.SysFont("moonspace",24).render("Mode: "+main.joint_mode[main.serial_cur],1,(255,0,0))
                     
                 # Speed
                 if joystick.get_button(ctrl_map_btn['Select']):
                     draw_highlight(highlight_surface, map_position['Select'])
-                    cfg.speed_mode = (cfg.speed_mode + 1) % 3
-                    scom.set_speed(serial_port, speed_array[cfg.speed_mode])
-                    print("Speed: " + str(speed_array[cfg.speed_mode]))
+                    cfg.speed_mode[main.serial_cur] = (cfg.speed_mode[main.serial_cur] + 1) % 3
+                    scom.set_speed(serial_port, speed_array[cfg.speed_mode[main.serial_cur]])
+                    print("Speed: " + str(speed_array[cfg.speed_mode[main.serial_cur]]))
 
                 # Switch Robots
                 if joystick.get_button(ctrl_map_btn['Triangle']):
@@ -176,6 +185,7 @@ def get_event(joystick, highlight_surface, image):
                         serial_port = serial_scalp
                         main.serial_cur = 'Cam'
                         print("\nSwitched to Cam")
+                    #screen_text[1] = pygame.font.SysFont("moonspace",24).render("Robot: "+main.serial_cur,1,(255,0,0))
 
                 # Exit manual mode
                 if serial_port is not None:
@@ -228,24 +238,24 @@ def get_event(joystick, highlight_surface, image):
                     help_image = pygame.image.load(help_image_path)
                     width, height = help_image.get_size()
 
-                    screen = pygame.display.set_mode((width, height))
+                    help_screen = pygame.display.set_mode((width, height))
                     pygame.display.set_caption('Controller Help')
-                    screen.blit(help_image, (0,0))
+                    help_screen.blit(help_image, (0,0))
                     pygame.display.flip()
 
                     # Wait for Start button to be pressed again
                     while True:
                         event2 = pygame.event.wait()
                         if event2.type == pygame.QUIT:
-                            return True, clr_flag
+                            return True, clr_flag, screen_text
                         elif event2.type == pygame.JOYBUTTONDOWN:
                             if joystick.get_button(ctrl_map_btn['Start']):
                                 # Close help screen
                                 width, height = image.get_size()
 
-                                screen = pygame.display.set_mode((width, height))
+                                help_screen = pygame.display.set_mode((width, height))
                                 pygame.display.set_caption('Controller Mapper')
-                                screen.blit(help_image, (0,0))
+                                help_screen.blit(help_image, (0,0))
                                 pygame.display.flip()
                                 break
 
@@ -257,5 +267,5 @@ def get_event(joystick, highlight_surface, image):
                 clr_flag=True
 
             if event.type == pygame.QUIT:
-                return True, clr_flag
-    return False, clr_flag
+                return True, clr_flag, screen_text
+    return False, clr_flag, screen_text

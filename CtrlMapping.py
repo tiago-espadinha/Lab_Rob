@@ -5,7 +5,6 @@ Authors:
     Tiago Simões - 96329
 '''
 
-import pygame
 from Config import controller
 
 map_position = { 'X': (492,260), 
