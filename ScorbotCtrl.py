@@ -6,9 +6,11 @@ Authors:
 '''
 
 import pygame
+import time
 import ScorbotCom as scom
 from CtrlMapping import map_position, ctrl_map_btn, ctrl_map_ax
-from variaveis import debug, default_pos, speed_array, speed_mode, deadzone
+from Config import debug, default_pos, speed_array, deadzone
+import Config as cfg
 
 # TODO: Check if robot recalibrated correctly
 # TODO: Have a mode Variable  
@@ -46,12 +48,12 @@ def controller_init():
 # Get controller input
 def get_event(joystick, highlight_surface, image):
     clr_flag = False
-    from scorbot_ctrl import serial_cam, serial_scalp, serial_cur
-    #import scorbot_ctrl as main
+    import scorbot_ctrl as main
+    from scorbot_ctrl import serial_cam, serial_scalp
     global count
-    if serial_cur == 'Cam':
+    if main.serial_cur == 'Cam':
         serial_port = serial_cam
-    elif serial_cur == 'Scalp':
+    elif main.serial_cur == 'Scalp':
         serial_port = serial_scalp
     for event in pygame.event.get():
             count += 1
@@ -159,20 +161,20 @@ def get_event(joystick, highlight_surface, image):
                 # Speed
                 if joystick.get_button(ctrl_map_btn['Select']):
                     draw_highlight(highlight_surface, map_position['Select'])
-                    speed_mode = (speed_mode + 1) % 3
-                    scom.set_speed(serial_port, speed_array[speed_mode])
-                    print("Speed: " + str(speed_array[speed_mode]))
+                    cfg.speed_mode = (cfg.speed_mode + 1) % 3
+                    scom.set_speed(serial_port, speed_array[cfg.speed_mode])
+                    print("Speed: " + str(speed_array[cfg.speed_mode]))
 
                 # Switch Robots
                 if joystick.get_button(ctrl_map_btn['Triangle']):
                     draw_highlight(highlight_surface, map_position['Triangle'])
-                    if serial_cur == 'Cam':
+                    if main.serial_cur == 'Cam':
                         serial_port = serial_cam
-                        serial_cur = 'Scalp'
+                        main.serial_cur = 'Scalp'
                         print("\nSwitched to Scalp")
-                    elif serial_cur == 'Scalp':
+                    elif main.serial_cur == 'Scalp':
                         serial_port = serial_scalp
-                        serial_cur = 'Cam'
+                        main.serial_cur = 'Cam'
                         print("\nSwitched to Cam")
 
                 # Exit manual mode
@@ -186,8 +188,17 @@ def get_event(joystick, highlight_surface, image):
                     if serial_port is not None:
                         scom.send_command(serial_port, calib_com)
                         scom.receive_command(serial_port)
-                        scom.receive_command(serial_port)   
                         scom.receive_command(serial_port)
+
+                        start_time = time.time()
+                        while True:
+                            recv_com = scom.receive_command(serial_port)
+                            if "Homing Complete" in recv_com:
+                                print("Received :", recv_com)
+                                break
+                            if time.time() - start_time > 180:
+                                print("Homing Timeout")
+                                break
                         
                     else:
                         print("\nSent: " + calib_com)

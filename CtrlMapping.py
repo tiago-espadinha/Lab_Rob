@@ -6,7 +6,7 @@ Authors:
 '''
 
 import pygame
-from variaveis import controller
+from Config import controller
 
 map_position = { 'X': (492,260), 
                  'Circle': (537,215), 

@@ -7,7 +7,7 @@ Authors:
 
 import serial
 import numpy as np
-from variaveis import debug, pos_var, default_pos
+from Config import debug, pos_var, default_pos
 
 # TODO: Check Manual Mode and Speed Profile
 # TODO: Analyse Get Position and Move To Position errors

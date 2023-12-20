@@ -8,7 +8,7 @@ Authors:
 import pygame
 import ScorbotCom as scom
 import ScorbotCtrl as sctrl
-from variaveis import cam_port, scalp_port, speed_array, speed_mode
+from Config import cam_port, scalp_port, speed_array, speed_mode
 
 # TODO: Avoid double initialization
 # TODO: Check Manual Mode and Robot initialization
