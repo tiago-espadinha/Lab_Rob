@@ -22,7 +22,7 @@ speed_mode = {'Cam': 1, 'Scalp':1}
 deadzone = 0.5
 
 # [Base, Shoulder, Elbow, Wrist Pitch, Wrist Roll]
-limits_joint = [[-20000, 20000],[-6500, 10000],[-26000, 3900],[-26000, 28000],[-31000, 31000]]
+limits_joint = [[20000, -20000],[-6500, 12000],[-26000, 3900],[-25000, 25000],[-31000, 31000]]
 # [X, Y, Z, P, R]
 limits_xyz = [[2000, 5500],[-2300, 2300],[-1300, 9400],[-1400, 240],[2700, 2700]]
 
@@ -63,3 +63,14 @@ default_pos_cam2 = ((-300, -15720, -28440, -4050, -2720),(2980, -410, 2810, -540
 
 # [[ -5147  11962  -1403 -11322   3682] [  5328  -2326   -602   -798    144]] limite y+
 # [[  7567  12343   -197 -12238   3680] [  5313   2607   -570   -794    144]] limite y-
+
+
+#         inicio > final >> delta
+# deltaBase 2219 > 2996 >> 66  -  11.77
+# delta   > 2977 >> 105       9.8
+# deltaBase  5.6
+
+# deltaShoulder 19
+# deltaShoulder buja 5.8
+# deltaShoulder baixo 8.6
+# deltaShoulder buja cima

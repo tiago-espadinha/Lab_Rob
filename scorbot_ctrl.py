@@ -13,7 +13,7 @@ from CtrlMapping import map_position, ctrl_map_btn, ctrl_map_ax
 import time
 
 # TODO: Check Manual Mode and Robot initialization
-
+count=0
 # Initialize serial port communication
 serial_cam = scom.port_init(cam_port)
 serial_scalp = scom.port_init(scalp_port)
@@ -23,7 +23,7 @@ cur_est = {'Cam': [[0,0,0,0,0],[0,0,0,0,0]], 'Scalp': [[0,0,0,0,0],[0,0,0,0,0]]}
 
 # Get controller input
 def get_event(joystick, highlight_surface, image):
-    global serial_cur
+    global serial_cur, count
     clr_flag = False
     screen_text = [pygame.font.SysFont("moonspace",24).render("Mode: " + joint_mode[serial_cur],1,(0,180,200)), 
                    pygame.font.SysFont("moonspace",24).render("Robot: " + serial_cur,1,(0,180,200)),
@@ -43,30 +43,29 @@ def get_event(joystick, highlight_surface, image):
                     scom.draw_highlight(highlight_surface, pos, 'analog')
                     if serial_port is not None:
                         if joint_mode[serial_cur] == 'JOINT':
-                            if cur_est[serial_cur][0][0] > cfg.limits_joint[0][0]:
-                                scom.send_command(serial_port, "11111\r")
-                                cur_est[serial_cur][0][0] -= 100
-                                print(cur_est[serial_cur][0][0])
+                            if cur_est[serial_cur][0][0] < cfg.limits_joint[0][0]:
+                                scom.send_command(serial_port, "qq\r")
+                                cur_est[serial_cur][0][0] += 6
+                                count+=1
                         if joint_mode[serial_cur] == 'XYZ':
-                            if cur_est[serial_cur][1][0] > cfg.limits_xyz[0][0]:
-                                scom.send_command(serial_port, "22222\r")
-                                cur_est[serial_cur][1][0] -= 100
-                                print(cur_est[serial_cur][1][0])
+                            if cur_est[serial_cur][1][0] < cfg.limits_xyz[0][0]:
+                                scom.send_command(serial_port, "22\r")
+                                cur_est[serial_cur][1][0] += 6
+                                count+=1
                 # Right
                 elif joystick.get_axis(ctrl_map_ax['Anlg_L_horz']) > deadzone:
                     pos = (map_position['L3'][0]+(joystick.get_axis(ctrl_map_ax['Anlg_L_horz'])*30),map_position['L3'][1])
                     scom.draw_highlight(highlight_surface, pos, 'analog')
                     if serial_port is not None:
                         if joint_mode[serial_cur] == 'JOINT':
-                            if cur_est[serial_cur][0][0] < cfg.limits_joint[0][1]:
-                                scom.send_command(serial_port, "qqqqq\r")
-                                cur_est[serial_cur][0][0] += 100
-                                print(cur_est[serial_cur][0][0])
+                            if cur_est[serial_cur][0][0] > cfg.limits_joint[0][1]:
+                                scom.send_command(serial_port, "11\r")
+                                cur_est[serial_cur][0][0] -= 6
+                                count+=1
                         if joint_mode[serial_cur] == 'XYZ':
-                            if cur_est[serial_cur][1][0] < cfg.limits_xyz[0][1]:
-                                scom.send_command(serial_port, "wwwww\r")
-                                cur_est[serial_cur][1][0] += 100
-                                print(cur_est[serial_cur][1][0])
+                            if cur_est[serial_cur][1][0] > cfg.limits_xyz[0][1]:
+                                scom.send_command(serial_port, "ww\r")
+                                cur_est[serial_cur][1][0] -= 6
 
                 # Y/Shoulder movement
                 # Forward
@@ -76,12 +75,19 @@ def get_event(joystick, highlight_surface, image):
                     if serial_port is not None:
                         if joint_mode[serial_cur] == 'JOINT':
                             if cur_est[serial_cur][0][1] > cfg.limits_joint[1][0]:
-                                scom.send_command(serial_port, "wwwww\r")
-                                cur_est[serial_cur][0][1] -= 100
+                                scom.send_command(serial_port, "22\r")
+                                cur_est[serial_cur][0][1] -= 3
+                                count+=1
+                                print(count)
+
                         if joint_mode[serial_cur] == 'XYZ':
                             if cur_est[serial_cur][1][1] > cfg.limits_xyz[1][0]:
-                                scom.send_command(serial_port, "11111\r")
-                                cur_est[serial_cur][1][1] -= 100
+                                scom.send_command(serial_port, "11\r")
+                                cur_est[serial_cur][1][1] -= 3
+                                count+=1
+
+                                print(count)
+
                 # Backward
                 elif joystick.get_axis(ctrl_map_ax['Anlg_L_vert']) > deadzone:
                     pos = (map_position['L3'][0],map_position['L3'][1]+(joystick.get_axis(ctrl_map_ax['Anlg_L_vert'])*30))
@@ -89,12 +95,16 @@ def get_event(joystick, highlight_surface, image):
                     if serial_port is not None:
                         if joint_mode[serial_cur] == 'JOINT':
                             if cur_est[serial_cur][0][1] < cfg.limits_joint[1][1]:
-                                scom.send_command(serial_port, "22222\r")
-                                cur_est[serial_cur][0][1] += 100
+                                scom.send_command(serial_port, "ww\r")
+                                cur_est[serial_cur][0][1] += 3
+                                count+=1
+                                print(count)
                         if joint_mode[serial_cur] == 'XYZ':
                             if cur_est[serial_cur][1][1] < cfg.limits_xyz[1][1]:
-                                scom.send_command(serial_port, "qqqqq\r")
-                                cur_est[serial_cur][1][1] += 100
+                                scom.send_command(serial_port, "qq\r")
+                                cur_est[serial_cur][1][1] += 3
+                                count+=1
+                                print(count)
                 
                 # Z/Elbow movement
                 # Up
@@ -103,12 +113,12 @@ def get_event(joystick, highlight_surface, image):
                     if serial_port is not None:
                         if joint_mode[serial_cur] == 'JOINT':
                             if cur_est[serial_cur][0][2] > cfg.limits_joint[2][0]:
-                                scom.send_command(serial_port, "eeeee\r")
-                                cur_est[serial_cur][0][2] -= 100
+                                scom.send_command(serial_port, "ee\r")
+                                cur_est[serial_cur][0][2] -= 3.8
                         if joint_mode[serial_cur] == 'XYZ':
                             if cur_est[serial_cur][1][2] > cfg.limits_xyz[2][0]:
-                                scom.send_command(serial_port, "eeeee\r")
-                                cur_est[serial_cur][1][2] -= 100
+                                scom.send_command(serial_port, "ee\r")
+                                cur_est[serial_cur][1][2] -= 3.8
 
                 # Down
                 elif joystick.get_axis(ctrl_map_ax['Anlg_R2']) > deadzone:
@@ -116,12 +126,12 @@ def get_event(joystick, highlight_surface, image):
                     if serial_port is not None:
                         if joint_mode[serial_cur] == 'JOINT':
                             if cur_est[serial_cur][0][2] < cfg.limits_joint[2][1]:
-                                scom.send_command(serial_port, "33333\r")
-                                cur_est[serial_cur][0][2] += 100
+                                scom.send_command(serial_port, "33\r")
+                                cur_est[serial_cur][0][2] += 3.8
                         if joint_mode[serial_cur] == 'XYZ':
                             if cur_est[serial_cur][1][2] < cfg.limits_xyz[2][1]:
-                                scom.send_command(serial_port, "33333\r")
-                                cur_est[serial_cur][1][2] += 100
+                                scom.send_command(serial_port, "33\r")
+                                cur_est[serial_cur][1][2] += 3.8
 
                 # Pitch movement
                 # Up
@@ -130,13 +140,13 @@ def get_event(joystick, highlight_surface, image):
                     scom.draw_highlight(highlight_surface, pos, 'analog')
                     if serial_port is not None:
                         if joint_mode[serial_cur] == 'JOINT':
-                            if cur_est[serial_cur][0][3] > cfg.limits_joint[3][0]:
-                                scom.send_command(serial_port, "44444\r")
-                                cur_est[serial_cur][0][3] -= 100
+                            if cur_est[serial_cur][0][3] < cfg.limits_joint[3][1]:
+                                scom.send_command(serial_port, "44\r")
+                                cur_est[serial_cur][0][3] += 6
                         if joint_mode[serial_cur] == 'XYZ':
-                            if cur_est[serial_cur][1][3] > cfg.limits_xyz[3][0]:
-                                scom.send_command(serial_port, "44444\r")
-                                cur_est[serial_cur][1][3] -= 100
+                            if cur_est[serial_cur][1][3] < cfg.limits_xyz[3][1]:
+                                scom.send_command(serial_port, "44\r")
+                                cur_est[serial_cur][1][3] += 6
 
 
                 # Down
@@ -145,13 +155,13 @@ def get_event(joystick, highlight_surface, image):
                     scom.draw_highlight(highlight_surface, pos, 'analog')
                     if serial_port is not None:
                         if joint_mode[serial_cur] == 'JOINT':
-                            if cur_est[serial_cur][0][3] < cfg.limits_joint[3][1]:
-                                scom.send_command(serial_port, "rrrrr\r")
-                                cur_est[serial_cur][0][3] += 100
+                            if cur_est[serial_cur][0][3] > cfg.limits_joint[3][0]:
+                                scom.send_command(serial_port, "rr\r")
+                                cur_est[serial_cur][0][3] -= 6
                         if joint_mode[serial_cur] == 'XYZ':
-                            if cur_est[serial_cur][1][3] < cfg.limits_xyz[3][1]:
-                                scom.send_command(serial_port, "rrrrr\r")
-                                cur_est[serial_cur][1][3] += 100
+                            if cur_est[serial_cur][1][3] > cfg.limits_xyz[3][0]:
+                                scom.send_command(serial_port, "rr\r")
+                                cur_est[serial_cur][1][3] -= 6
 
 
                 # Roll movement
@@ -162,12 +172,12 @@ def get_event(joystick, highlight_surface, image):
                     if serial_port is not None:
                         if joint_mode[serial_cur] == 'JOINT':
                             if cur_est[serial_cur][0][4] > cfg.limits_joint[4][0]:
-                                scom.send_command(serial_port, "ttttt\r")
-                                cur_est[serial_cur][0][4] -= 100
+                                scom.send_command(serial_port, "tt\r")
+                                cur_est[serial_cur][0][4] -= 6
                         if joint_mode[serial_cur] == 'XYZ':
                             if cur_est[serial_cur][1][4] > cfg.limits_xyz[4][0]:
-                                scom.send_command(serial_port, "ttttt\r")
-                                cur_est[serial_cur][1][4] -= 100
+                                scom.send_command(serial_port, "tt\r")
+                                cur_est[serial_cur][1][4] -= 6
 
                 # Right
                 elif joystick.get_axis(ctrl_map_ax['Anlg_R_horz']) > deadzone:
@@ -176,12 +186,12 @@ def get_event(joystick, highlight_surface, image):
                     if serial_port is not None:
                         if joint_mode[serial_cur] == 'JOINT':
                             if cur_est[serial_cur][0][4] < cfg.limits_joint[4][1]:
-                                scom.send_command(serial_port, "55555\r")
-                                cur_est[serial_cur][0][4] += 100
+                                scom.send_command(serial_port, "55\r")
+                                cur_est[serial_cur][0][4] += 6
                         if joint_mode[serial_cur] == 'XYZ':
                             if cur_est[serial_cur][1][4] < cfg.limits_xyz[4][1]:
-                                scom.send_command(serial_port, "55555\r")
-                                cur_est[serial_cur][1][4] += 100
+                                scom.send_command(serial_port, "55\r")
+                                cur_est[serial_cur][1][4] += 6
             # Button input
             if event.type == pygame.JOYBUTTONDOWN:
 
@@ -254,7 +264,7 @@ def get_event(joystick, highlight_surface, image):
                         start_time = time.time()
                         while True:
                             recv_com = scom.receive_command(serial_port)
-                            if "Homing Complete" in recv_com:
+                            if "Homing complete" in recv_com:
                                 print("Received :", recv_com)
                                 break
                             if time.time() - start_time > 180:
@@ -275,8 +285,10 @@ def get_event(joystick, highlight_surface, image):
                 # Get current position
                 if joystick.get_button(ctrl_map_btn['X']):
                     scom.draw_highlight(highlight_surface, map_position['X']) 
+                    print(cur_est[serial_cur])
                     cur_pos = scom.get_position(serial_port)
                     if cur_pos is not None:
+                        cur_est[serial_cur] = cur_pos
                         print ('Current position:' + str(cur_pos))
                     else:
                         print("Failed to get position.")
