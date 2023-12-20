@@ -1,13 +1,16 @@
-import pygame
+'''
+Authors: 
+    Diogo Rosa   - 93044
+    Tomás Bastos - 93194
+    Tiago Simões - 96329
+'''
+
 import serial
-import time
 import numpy as np
+from variaveis import debug, pos_var, default_pos
 
-import ScorbotCom as scom
-import ScorbotCtrl as sctrl
-import CtrlMapping as ctrlmap
-
-pos_var = "A31"
+# TODO: Check Manual Mode and Speed Profile
+# TODO: Analyse Get Position and Move To Position errors
 
 # Initialize serial port communication
 def port_init(port_name):
@@ -16,7 +19,12 @@ def port_init(port_name):
         serial_port = serial.Serial(port_name, baud_rate, timeout=1)
     except:
         print("Failed to connect to serial port.")
-        return None
+
+        if debug:
+            return None
+        else:
+            exit(0)
+
     return serial_port
 
 
@@ -27,17 +35,13 @@ def send_command(port, command):
     except:
         print("Failed to write to serial port.")
         return
-    print("Sent: ", command.encode('utf8'))
-    return
+    
+    if debug:
+        print("Sent: ", command.encode('utf8'))
 
-def send_command_manual(port, command):
-    try:
-        port.write(command.encode('utf8'))
-    except:
-        print("Failed to write to serial port.")
-        return
     return
     
+
 # Receive data from serial port
 def receive_command(port):
     try:
@@ -46,7 +50,10 @@ def receive_command(port):
         print("Failed to read from serial port.")
         return None
     message = message.decode('utf8')
-    print("Received: ", message)
+
+    if debug:
+        print("Received: ", message)
+
     return message
 
 
@@ -58,7 +65,6 @@ def get_position(serial_port):
     read_pos_com = "LISTPV " + pos_var + "\r"
 
     if serial_port is not None:
-        # TODO: Check order "DEFP", "HERE", "LISTPV"
         # Create variable to store position
         send_command(serial_port, create_pos_com)
         receive_command(serial_port)
@@ -79,27 +85,28 @@ def get_position(serial_port):
                 # Split string and save coordinates
                 coord_array = np.zeros((2,5), dtype=int)
                 
-                recv_com1 = receive_command(serial_port)
-                recv_com2 = receive_command(serial_port)
-                coord_split1 = recv_com1.split(":")
-                coord_split2 = recv_com2.split(":")
+                recv_joint = receive_command(serial_port)
+                recv_xyz = receive_command(serial_port)
+                coord_joint = recv_joint.split(":")
+                coord_xyz = recv_xyz.split(":")
 
                 for j in range(1, 6):
-                    aux1 = coord_split1[j][:-2]
-                    aux2 = coord_split2[j][:-2]
-                    coord_array[0][j-1] = int(aux1)
-                    coord_array[1][j-1] = int(aux2)
+                    aux_j = coord_joint[j][:-2]
+                    aux_x = coord_xyz[j][:-2]
+                    coord_array[0][j-1] = int(aux_j)
+                    coord_array[1][j-1] = int(aux_x)
                 return coord_array
                         
         print("Failed to get position.")
         return None
     
     # Debug mode
-    else:
+    elif debug:
         print("\nSent: " + create_pos_com)
         print("Sent: " + save_pos_com)
         print("Sent: " + read_pos_com + "\n")
-        return list(list(item) for item in sctrl.default_pos)
+        return list(list(item) for item in default_pos)
+
 
 # Moves robot
 def move_to_pos(serial_port):
@@ -115,10 +122,11 @@ def move_to_pos(serial_port):
             return 0
     
     # Debug mode
-    else:
+    elif debug:
         print("Sent: " + move_com)
 
     return 1
+
 
 # Send command to update coordinates
 def update_pos(serial_port, coord, axis, mode='XYZ'):
@@ -166,5 +174,24 @@ def update_pos(serial_port, coord, axis, mode='XYZ'):
                 print("Failed to update position.")
 
         # Debug mode
-        else:
-            print("Sent: " + set_pos_com)
+        elif debug:
+            print("\nSent: " + set_pos_com)
+
+
+# Toggle Manual Mode on/off
+def toggle_manual(serial_port):
+    send_command(serial_port, "~\r")
+    receive_command(serial_port)
+    receive_command(serial_port)
+    receive_command(serial_port)
+    return
+
+
+# Change speed profile
+def set_speed(serial_port, speed):
+    send_command(serial_port, "s\r")
+    receive_command(serial_port)
+    send_command(serial_port, str(speed) + "\r")
+    receive_command(serial_port)
+    receive_command(serial_port)
+    return

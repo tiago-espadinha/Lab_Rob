@@ -1,4 +1,29 @@
-var1 = 234
+'''
+Global variables 
+Configurations for the robot and the camera
+'''
+
+debug = True
+
+pos_var = 'A31'
+controller = 'PS4'
+
+# Serial ports
+scalp_port = 'COM7'
+cam_port   = 'COM8'
+
+# Movement speed
+speed_array = [5, 15, 30]
+speed_mode = 1
+
+# Analog stick deadzone
+deadzone = 0.5
+
+# Default position [[Base, Shoulder, Elbow, Wrist Pitch, Wrist Roll][X, Y, Z, P, R]]
+default_pos = ((1300, -11700, -5480, -10300, 2140),(5000, 100, 8000, 0, 0))
+default_pos_cam1 = ((-860, -14850, -430, -27000, -2930),(3100, -540, 7900, -200, -480)) # Camera position to see robot
+default_pos_cam2 = ((-300, -15720, -28440, -4050, -2720),(2980, -410, 2810, -540, -460)) # Camera position to see gelatin
+
 
 #  [[  -80  6389 -9621 -9133 >31928]   [ 5121  -381   185  -833  >2792]] - limit eixo 5 roll esquerda
 # [[   -80   6389  -9621  -9133 >-31946] [  5121   -381    185   -833   >2948]] - limit eixo 5 roll direita

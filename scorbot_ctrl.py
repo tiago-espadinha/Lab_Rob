@@ -1,37 +1,30 @@
-import pygame
-import serial
-import time
-import numpy as np
-import pyautogui
+'''
+Authors: 
+    Diogo Rosa   - 93044
+    Tomás Bastos - 93194
+    Tiago Simões - 96329
+'''
 
+import pygame
 import ScorbotCom as scom
 import ScorbotCtrl as sctrl
-import CtrlMapping as ctrlmap
-import variaveis as var
-# bad point circle
-# impact axis 10
-# tcp worth
+from variaveis import cam_port, scalp_port, speed_array, speed_mode
 
+# TODO: Avoid double initialization
+# TODO: Check Manual Mode and Robot initialization
+
+# Initialize serial port communication
+serial_cam = scom.port_init(cam_port)
+serial_scalp = scom.port_init(scalp_port)
+serial_cur = 'Cam'
 
 def main():
-
-    # print(var.var1)
-    # var.var1 = 123
-    # print(var.var1)
-
-    # Initialize serial port communication
-    rob1_port = 'COM3'
-    rob2_port = 'COM4'
-    serial_rob1 = scom.port_init(rob1_port)
-    serial_rob2 = scom.port_init(rob2_port)
-    serial_port = serial_rob1
-    rob_now = 1
+    global serial_cam, serial_scalp, serial_cur
 
     # Initialize pygame and controller
     pygame.init()
     joystick = sctrl.controller_init()
 
-    ### Button Layout ###
     # Load image
     image_path = 'Images/PS3_ctrl_layout.jpg'
     image = pygame.image.load(image_path)
@@ -42,131 +35,89 @@ def main():
 
     highlight_surface = pygame.Surface(image.get_size(), pygame.SRCALPHA)
 
-    # Default position [[Base, Shoulder, Elbow, Wrist Pitch, Wrist Roll][X, Y, Z, P, R]]
-    default_pos = ((0, 0, 0, 0, 0),(5000, 100, 8000, 0, 0))
-    cur_pos = list(list(item) for item in default_pos)
+    # Initialize robot 1
+    serial_port = serial_cam
+    serial_cur = 'Cam'
 
-
-     # Initialize robot 1
+    if serial_port is not None:
+        scom.send_command(serial_port, "~\r")
+        scom.receive_command(serial_port)
+        recv_com = scom.receive_command(serial_port)
+        scom.receive_command(serial_port)
     
-    # scom.send_command(serial_port, "CON\r")
-    # scom.receive_command(serial_port)
-    # scom.receive_command(serial_port)
+        if recv_com == "MANUAL MODE!\r\n":
+            scom.send_command(serial_port, "~\r")
+            scom.receive_command(serial_port)
+            scom.receive_command(serial_port)
+            scom.receive_command(serial_port)
+            scom.receive_command(serial_port)
 
-
-    scom.send_command(serial_port, "~\r")
-    scom.receive_command(serial_port)
-    recv_com = scom.receive_command(serial_port)
-    scom.receive_command(serial_port)
-    
-    if recv_com == "MANUAL MODE!\r\n":
+        # Initialize position
+        
         scom.send_command(serial_port, "~\r")
         scom.receive_command(serial_port)
         scom.receive_command(serial_port)
         scom.receive_command(serial_port)
+
+        scom.set_speed(serial_port, speed_array[speed_mode])
+
+        scom.send_command(serial_port, "x\r")
+        scom.receive_command(serial_port)
         scom.receive_command(serial_port)
 
 
-
-    # # Initialize position
-    cur_pos = scom.get_position(serial_port)
-    print ('Current position:' + str(cur_pos))
-    
-    scom.send_command_manual(serial_port, "~\r")
-    scom.receive_command(serial_port)
-    scom.receive_command(serial_port)
-    scom.receive_command(serial_port)
-
-    scom.send_command(serial_port, "s\r")
-    scom.receive_command(serial_port)
-
-    scom.send_command(serial_port, "20\r")
-    scom.receive_command(serial_port)
-    scom.receive_command(serial_port)
-
-    scom.send_command(serial_port, "x\r")
-    scom.receive_command(serial_port)
-    scom.receive_command(serial_port)
-
-
-    scom.send_command_manual(serial_port, "c\r")
-    scom.receive_command(serial_port)
-    scom.receive_command(serial_port)
+        scom.send_command(serial_port, "c\r")
+        scom.receive_command(serial_port)
+        scom.receive_command(serial_port)
 
     #initialize robot 2
+    serial_port = serial_scalp
+    serial_cur = 'Scalp'
 
-    serial_port = serial_rob2
+    if serial_port is not None:
+        scom.send_command(serial_port, "~\r")
+        scom.receive_command(serial_port)
+        recv_com = scom.receive_command(serial_port)
+        scom.receive_command(serial_port)
+        
+        if recv_com == "MANUAL MODE!\r\n":
+            scom.send_command(serial_port, "~\r")
+            scom.receive_command(serial_port)
+            scom.receive_command(serial_port)
+            scom.receive_command(serial_port)
+            scom.receive_command(serial_port)
 
-    scom.send_command(serial_port, "~\r")
-    scom.receive_command(serial_port)
-    recv_com = scom.receive_command(serial_port)
-    scom.receive_command(serial_port)
-    
-    if recv_com == "MANUAL MODE!\r\n":
+
+        # # Initialize position
+        
         scom.send_command(serial_port, "~\r")
         scom.receive_command(serial_port)
         scom.receive_command(serial_port)
         scom.receive_command(serial_port)
+
+        scom.set_speed(serial_port, speed_array[speed_mode])
+
+        # Control enable
+        scom.send_command(serial_port, "c\r")
+        scom.receive_command(serial_port)
         scom.receive_command(serial_port)
 
+        # Toggle XYZ mode
+        scom.send_command(serial_port, "x\r")
+        scom.receive_command(serial_port)
+        scom.receive_command(serial_port)
 
-    # # Initialize position
-    cur_pos = scom.get_position(serial_port)
-    print ('Current position:' + str(cur_pos))
-    
-    scom.send_command_manual(serial_port, "~\r")
-    scom.receive_command(serial_port)
-    scom.receive_command(serial_port)
-    scom.receive_command(serial_port)
-
-    scom.send_command(serial_port, "s\r")
-    scom.receive_command(serial_port)
-
-    scom.send_command(serial_port, "20\r")
-    scom.receive_command(serial_port)
-    scom.receive_command(serial_port)
-
-    scom.send_command_manual(serial_port, "c\r")
-    scom.receive_command(serial_port)
-    scom.receive_command(serial_port)
-
-    scom.send_command(serial_port, "x\r")
-    scom.receive_command(serial_port)
-    scom.receive_command(serial_port)
-
-    serial_port = serial_rob1
-
-    #scom.send_command(serial_port, "CON\r")
-    # scom.receive_command(serial_port)
-    # scom.receive_command(serial_port)
-
-    #manual mode
-    # scom.send_command(serial_port, "~\r")
-    # scom.receive_command(serial_port)
-    
-    # recv_com = scom.receive_command(serial_port)
-    # if recv_com != "MANUAL MODE!\r\n":
-    #     scom.send_command(serial_port, "~\r")
-    #     scom.receive_command(serial_port)
-    #     recv_com = scom.receive_command(serial_port)     
-    # scom.receive_command(serial_port)
-    # scom.receive_command(serial_port)
-    # scom.send_command(serial_port, "s\r")
-    # scom.send_command(serial_port, "35\r")
-    # scom.receive_command(serial_port)
-    # scom.receive_command(serial_port)
-    # scom.send_command(serial_port, "c\r")
-    # scom.receive_command(serial_port)
-    # scom.receive_command(serial_port)
-
+    serial_port = serial_cam
+    serial_cur = 'Cam'
 
     # Get controller input
     done = False
-    count = 0
     while not done:
-        done, cur_pos, count, rob_now, serial_port = sctrl.get_event(joystick, serial_port, highlight_surface, image, cur_pos, count, serial_rob1, serial_rob2, rob_now)
-        # TODO: Fix screen update
+        done, clr_screen = sctrl.get_event(joystick, highlight_surface, image)
+
         # Update controller window
+        if clr_screen:
+                highlight_surface = pygame.Surface(image.get_size(), pygame.SRCALPHA)
         screen.blit(image, (0,0))
         screen.blit(highlight_surface,(0,0))
         pygame.display.flip()
