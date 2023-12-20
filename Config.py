@@ -21,6 +21,11 @@ speed_mode = {'Cam': 1, 'Scalp':1}
 # Analog stick deadzone
 deadzone = 0.5
 
+# [Base, Shoulder, Elbow, Wrist Pitch, Wrist Roll]
+limits_joint = [[-20000, 20000],[-6500, 10000],[-26000, 3900],[-26000, 28000],[-31000, 31000]]
+# [X, Y, Z, P, R]
+limits_xyz = [[2000, 5500],[-2300, 2300],[-1300, 9400],[-1400, 240],[2700, 2700]]
+
 # Default position [[Base, Shoulder, Elbow, Wrist Pitch, Wrist Roll][X, Y, Z, P, R]]
 default_pos = ((1300, -11700, -5480, -10300, 2140),(5000, 100, 8000, 0, 0))
 default_pos_cam1 = ((-860, -14850, -430, -27000, -2930),(3100, -540, 7900, -200, -480)) # Camera position to see robot

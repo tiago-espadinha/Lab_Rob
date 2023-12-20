@@ -75,7 +75,10 @@ def get_event(joystick, highlight_surface, image):
                     pos = (map_position['L3'][0]+(joystick.get_axis(ctrl_map_ax['Anlg_L_horz'])*30),map_position['L3'][1])
                     draw_highlight(highlight_surface, pos, 'analog')
                     if serial_port is not None:
-                        scom.send_command(serial_port, "wwwww\r")
+                        if main.joint_mode[main.serial_cur] == 'JOINT':
+                            if cur_est[0][0] < cfg.limits_joint[0][1]:
+                                scom.send_command(serial_port, "wwwww\r")
+                                cur_est[0][0] += 100
 
                 # Y/Shoulder movement
                 # Forward
