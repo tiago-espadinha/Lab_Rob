@@ -11,8 +11,8 @@ pos_var = 'A31'
 controller = 'PS4'
 
 # Serial ports
-scalp_port = 'COM4'
-cam_port   = 'COM3'
+scalp_port = 'COM3'
+cam_port   = 'COM4'
 
 # Movement speed
 speed_array = [5, 15, 30]
@@ -24,19 +24,21 @@ deadzone = 0.5
 # [Base, Shoulder, Elbow, Wrist Pitch, Wrist Roll]
 limits_joint = [[20000, -20000],[-6500, 12000],[-26000, 3900],[-25000, 25000],[-31000, 31000]]
 # [X, Y, Z, P, R]
-limits_xyz = [[2000, 5500],[-2300, 2300],[-1300, 9400],[-1400, 240],[2700, 2700]]
+limits_xyz = [[2000, 5500],[-2300, 2300],[-1300, 9400],[-1400, 240],[-2700, 2700]]
 
 # Default position [[Base, Shoulder, Elbow, Wrist Pitch, Wrist Roll][X, Y, Z, P, R]]
 #default_pos = ((1300, -11700, -5480, -10300, 2140),(5000, 100, 8000, 0, 0))
 default_pos_cam1 = ((-860, -14850, -430, -27000, -2930),(3100, -540, 7900, -200, -480)) # Camera position to see robot
-default_pos = ((-300, -15720, -28440, -4050, -2720),(2980, -410, 2810, -540, -460)) # Camera position to see gelatin
+#default_pos = ((-300, -15720, -28440, -4050, -2720),(2980, -410, 2810, -540, -460)) # Camera position to see gelatin
+#default_pos = ((0, 2750, -11500, 0, 0), (3750,0, 6000, -820, 500))
+default_pos = ((984, -15720, -28440, 13737, 1367),(4058, -81, 4905, 10, -73))
 
 # Delta 
 # [Base, Shoulder, Elbow, Wrist Pitch]][X, Y, Z, P]
-delta = [[[12, 6, 7.6, 12],[0, 0, 0, 0]], # Speed 5
-         [[6, 3, 3.8, 6],[3, 0.8, 3.8, 6]], # Speed 15
-         [[3, 1.5, 1.9, 3],[0, 0, 0, 0]]] # Speed 30
-
+delta = [[[3, 1.8, 2.3, 4.2],[0, 0, 0, 0]], # Speed 5
+         [[5, 3, 3.8, 7],[0, 0, 0, 0]], # Speed 15
+         [[8, 4.8, 5, 11.2],[0, 0, 0, 0]]] # Speed 30
+        
 
 # [[  -80  6389 -9621 -9133 >31928]   [ 5121  -381   185  -833  >2792]] - limit eixo 5 roll esquerda
 # [[   -80   6389  -9621  -9133 >-31946] [  5121   -381    185   -833   >2948]] - limit eixo 5 roll direita

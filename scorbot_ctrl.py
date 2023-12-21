@@ -13,7 +13,6 @@ from CtrlMapping import map_position, ctrl_map_btn, ctrl_map_ax
 import time
 
 # TODO: Check Manual Mode and Robot initialization
-count=0
 # Initialize serial port communication
 serial_cam = scom.port_init(cam_port)
 serial_scalp = scom.port_init(scalp_port)
@@ -23,7 +22,7 @@ cur_est = {'Cam': [[0,0,0,0,0],[0,0,0,0,0]], 'Scalp': [[0,0,0,0,0],[0,0,0,0,0]]}
 
 # Get controller input
 def get_event(joystick, highlight_surface, image):
-    global serial_cur, count
+    global serial_cur
     clr_flag = False
     screen_text = [pygame.font.SysFont("moonspace",24).render("Mode: " + joint_mode[serial_cur],1,(0,180,200)), 
                    pygame.font.SysFont("moonspace",24).render("Robot: " + serial_cur,1,(0,180,200)),
@@ -59,12 +58,11 @@ def get_event(joystick, highlight_surface, image):
                             if cur_est[serial_cur][0][0] > cfg.limits_joint[0][1]:
                                 scom.send_command(serial_port, "11\r")
                                 cur_est[serial_cur][0][0] -= delta[cfg.speed_mode[serial_cur]][0][0]
-                                count+=1
                         if joint_mode[serial_cur] == 'XYZ':
                             if cur_est[serial_cur][1][1] > cfg.limits_xyz[1][0]:
                                 scom.send_command(serial_port, "ww\r")
                                 cur_est[serial_cur][1][1] -= delta[cfg.speed_mode[serial_cur]][1][1]
-
+                                
                 # X/Shoulder movement
                 # Forward
                 elif joystick.get_axis(ctrl_map_ax['Anlg_L_vert']) < -deadzone:
@@ -75,16 +73,12 @@ def get_event(joystick, highlight_surface, image):
                             if cur_est[serial_cur][0][1] > cfg.limits_joint[1][0]:
                                 scom.send_command(serial_port, "22\r")
                                 cur_est[serial_cur][0][1] -= delta[cfg.speed_mode[serial_cur]][0][1]
-                                count+=1
-                                print(count)
 
                         if joint_mode[serial_cur] == 'XYZ':
                             if cur_est[serial_cur][1][0] > cfg.limits_xyz[0][0]:
                                 scom.send_command(serial_port, "11\r")
                                 cur_est[serial_cur][1][0] -= delta[cfg.speed_mode[serial_cur]][1][0]
-                                count+=1
 
-                                print(count)
 
                 # Backward
                 elif joystick.get_axis(ctrl_map_ax['Anlg_L_vert']) > deadzone:
@@ -95,14 +89,10 @@ def get_event(joystick, highlight_surface, image):
                             if cur_est[serial_cur][0][1] < cfg.limits_joint[1][1]:
                                 scom.send_command(serial_port, "ww\r")
                                 cur_est[serial_cur][0][1] += delta[cfg.speed_mode[serial_cur]][0][1]
-                                count+=1
-                                print(count)
                         if joint_mode[serial_cur] == 'XYZ':
                             if cur_est[serial_cur][1][0] < cfg.limits_xyz[0][1]:
                                 scom.send_command(serial_port, "qq\r")
                                 cur_est[serial_cur][1][0] += delta[cfg.speed_mode[serial_cur]][1][0]
-                                count+=1
-                                print(count)
                 
                 # Z/Elbow movement
                 # Up
@@ -214,12 +204,12 @@ def get_event(joystick, highlight_surface, image):
 
                     #screen_text[0] = pygame.font.SysFont("moonspace",24).render("Mode: "+joint_mode[serial_cur],1,(255,0,0))
                     
-                # Speed
-                if joystick.get_button(ctrl_map_btn['Select']):
-                    scom.draw_highlight(highlight_surface, map_position['Select'])
-                    cfg.speed_mode[serial_cur] = (cfg.speed_mode[serial_cur] + 1) % 3
-                    scom.set_speed(serial_port, speed_array[cfg.speed_mode[serial_cur]])
-                    print("Speed: " + str(speed_array[cfg.speed_mode[serial_cur]]))
+                # # Speed
+                # if joystick.get_button(ctrl_map_btn['Select']):
+                #     scom.draw_highlight(highlight_surface, map_position['Select'])
+                #     cfg.speed_mode[serial_cur] = (cfg.speed_mode[serial_cur] + 1) % 3
+                #     scom.set_speed(serial_port, speed_array[cfg.speed_mode[serial_cur]])
+                #     print("Speed: " + str(speed_array[cfg.speed_mode[serial_cur]]))
 
                 # Switch Robots
                 if joystick.get_button(ctrl_map_btn['Triangle']):
@@ -236,7 +226,14 @@ def get_event(joystick, highlight_surface, image):
 
                 # Exit manual mode
                 if serial_port is not None:
-                    scom.toggle_manual(serial_port)
+                    scom.toggle_manual(serial_port)                
+                
+                                # Speed
+                if joystick.get_button(ctrl_map_btn['Select']):
+                    scom.draw_highlight(highlight_surface, map_position['Select'])
+                    cfg.speed_mode[serial_cur] = (cfg.speed_mode[serial_cur] + 1) % 3
+                    scom.set_speed(serial_port, speed_array[cfg.speed_mode[serial_cur]])
+                    print("Speed: " + str(speed_array[cfg.speed_mode[serial_cur]]))
 
                 # Recalibrate
                 if joystick.get_button(ctrl_map_btn['Square']):
@@ -265,6 +262,7 @@ def get_event(joystick, highlight_surface, image):
                     scom.draw_highlight(highlight_surface, map_position['Circle'])
                     next_pos = list(list(item) for item in default_pos)
                     scom.update_pos(serial_port, next_pos, 'ALL')
+                    cur_est[serial_cur] = next_pos
                     if scom.move_to_pos(serial_port) != 1:
                         print("Return to Default Position Failed")
 
@@ -283,6 +281,16 @@ def get_event(joystick, highlight_surface, image):
                     scom.draw_highlight(highlight_surface, map_position['Up'])
                     if scom.move_to_home(serial_port) != 1:
                         print("Return to Homr Position Failed")
+                
+                if joystick.get_button(ctrl_map_btn['Right']):             
+                    scom.draw_highlight(highlight_surface, map_position['Right'])
+                    scom.send_command(serial_port, "SHOW SPEED\r")
+                    scom.receive_command(serial_port)
+                    print("Speed: " + scom.receive_command(serial_port))
+                    scom.receive_command(serial_port)
+                    scom.receive_command(serial_port)
+                    scom.receive_command(serial_port)
+                    scom.receive_command(serial_port)
 
                 # Show Help Screen
                 if joystick.get_button(ctrl_map_btn['Start']):
@@ -362,13 +370,13 @@ def main():
 
         # Get current position Cam
         cur_est[serial_cur] = scom.get_position(serial_port)
+        scom.set_speed(serial_port, speed_array[speed_mode[serial_cur]])
 
         scom.send_command(serial_port, "~\r")
         scom.receive_command(serial_port)
         scom.receive_command(serial_port)
         scom.receive_command(serial_port)
 
-        scom.set_speed(serial_port, speed_array[speed_mode[serial_cur]])
 
         scom.send_command(serial_port, "x\r")
         scom.receive_command(serial_port)
@@ -400,14 +408,14 @@ def main():
 
         # Get current position Scalp
         cur_est[serial_cur] = scom.get_position(serial_port)
+        scom.set_speed(serial_port, speed_array[speed_mode[serial_cur]])
     
         scom.send_command(serial_port, "~\r")
         scom.receive_command(serial_port)
         scom.receive_command(serial_port)
         scom.receive_command(serial_port)
 
-    
-        scom.set_speed(serial_port, speed_array[speed_mode[serial_cur]])
+        
 
         # Control enable
         scom.send_command(serial_port, "c\r")
@@ -415,13 +423,13 @@ def main():
         scom.receive_command(serial_port)
 
         # Toggle XYZ mode
-        scom.send_command(serial_port, "x\r")
+        scom.send_command(serial_port, "j\r")
         scom.receive_command(serial_port)
         scom.receive_command(serial_port)
-        joint_mode['Scalp'] = 'XYZ'
+        joint_mode['Scalp'] = 'JOINT'
 
-    serial_port = serial_cam
-    serial_cur = 'Cam'
+    # serial_port = serial_cam
+    # serial_cur = 'Cam'
 
     # Get controller input
     done = False

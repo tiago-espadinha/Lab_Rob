@@ -209,11 +209,11 @@ def toggle_manual(serial_port):
 
 # Change speed profile
 def set_speed(serial_port, speed):
-    send_command(serial_port, "s\r")
+
+    send_command(serial_port, "SPEED " + str(speed) + "\r")
     receive_command(serial_port)
-    send_command(serial_port, str(speed) + "\r")
     receive_command(serial_port)
-    receive_command(serial_port)
+    
     return
 
 # Highlight controller diagram
