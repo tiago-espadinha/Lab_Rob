@@ -10,10 +10,6 @@ import serial
 import numpy as np
 from Config import debug, pos_var, default_pos
 
-# TODO: Check Manual Mode and Speed Profile
-# TODO: Analyse Get Position and Move To Position errors
-
-
 # Initialize serial port communication
 def port_init(port_name):
     baud_rate = 9600
@@ -149,49 +145,48 @@ def move_to_home(serial_port):
 
 
 # Send command to update coordinates
-def update_pos(serial_port, coord, axis, mode='XYZ'):
+def update_pos(serial_port, coord, axis):
     if axis =='ALL':
-        #if mode == 'XYZ':
-            axis_arr = ['X', 'Y', 'Z', 'P', 'R']
-            for i in range(len(axis_arr)):
-                update_pos(serial_port, coord, axis_arr[i], mode)
-        #elif mode == 'Joint':
-            axis_arr = ['1', '2', '3', '4', '5']
-            for i in range(len(axis_arr)):
-                update_pos(serial_port, coord, axis_arr[i], mode)
+        # Set all cartesian coordinates
+        axis_arr = ['X', 'Y', 'Z', 'P', 'R']
+        for i in range(len(axis_arr)):
+            update_pos(serial_port, coord, axis_arr[i])
+
+        # Set all joint coordinates
+        axis_arr = ['1', '2', '3', '4', '5']
+        for i in range(len(axis_arr)):
+            update_pos(serial_port, coord, axis_arr[i])
     else:
-        # With cartesian coordinates
-        #if mode == 'XYZ':   
-            if axis == 'X': # X-axis
-                set_pos_com = "SETPVC " + pos_var + " X " + str(coord[1][0]) + "\r"
-            if axis == 'Y': # Y-axis
-                set_pos_com = "SETPVC " + pos_var + " Y " + str(coord[1][1]) + "\r"
-            if axis == 'Z': # Z-axis
-                set_pos_com = "SETPVC " + pos_var + " Z " + str(coord[1][2]) + "\r"
-            if axis == 'P': # Pitch
-                set_pos_com = "SETPVC " + pos_var + " P " + str(coord[1][3]) + "\r"
-            if axis == 'R': # Roll
-                set_pos_com = "SETPVC " + pos_var + " R " + str(coord[1][4]) + "\r"
+        # Set cartesian coordinates   
+        if axis == 'X': # X-axis
+            set_pos_com = "SETPVC " + pos_var + " X " + str(coord[1][0]) + "\r"
+        if axis == 'Y': # Y-axis
+            set_pos_com = "SETPVC " + pos_var + " Y " + str(coord[1][1]) + "\r"
+        if axis == 'Z': # Z-axis
+            set_pos_com = "SETPVC " + pos_var + " Z " + str(coord[1][2]) + "\r"
+        if axis == 'P': # Pitch
+            set_pos_com = "SETPVC " + pos_var + " P " + str(coord[1][3]) + "\r"
+        if axis == 'R': # Roll
+            set_pos_com = "SETPVC " + pos_var + " R " + str(coord[1][4]) + "\r"
 
-        # With joint coordinates      
-        #elif mode == 'Joint':
-            if axis == '1': # Base
-                set_pos_com = "SETPV " + pos_var + " 1 " + str(coord[0][0]) + "\r"
-            if axis == '2': # Shoulder
-                set_pos_com = "SETPV " + pos_var + " 2 " + str(coord[0][1]) + "\r"
-            if axis == '3': # Elbow
-                set_pos_com = "SETPV " + pos_var + " 3 " + str(coord[0][2]) + "\r"
-            if axis == '4': # Wrist Pitch
-                set_pos_com = "SETPV " + pos_var + " 4 " + str(coord[0][3]) + "\r"
-            if axis == '5': # Wrist Roll
-                set_pos_com = "SETPV " + pos_var + " 5 " + str(coord[0][4]) + "\r"
+        # Set joint coordinates      
+        if axis == '1': # Base
+            set_pos_com = "SETPV " + pos_var + " 1 " + str(coord[0][0]) + "\r"
+        if axis == '2': # Shoulder
+            set_pos_com = "SETPV " + pos_var + " 2 " + str(coord[0][1]) + "\r"
+        if axis == '3': # Elbow
+            set_pos_com = "SETPV " + pos_var + " 3 " + str(coord[0][2]) + "\r"
+        if axis == '4': # Wrist Pitch
+            set_pos_com = "SETPV " + pos_var + " 4 " + str(coord[0][3]) + "\r"
+        if axis == '5': # Wrist Roll
+            set_pos_com = "SETPV " + pos_var + " 5 " + str(coord[0][4]) + "\r"
 
-            if serial_port is not None:
-                send_command(serial_port, set_pos_com)
-                receive_command(serial_port)
-                recv_com = receive_command(serial_port)
-                if not 'Done' in recv_com:
-                    print("Failed to update position.")
+        if serial_port is not None:
+            send_command(serial_port, set_pos_com)
+            receive_command(serial_port)
+            recv_com = receive_command(serial_port)
+            if not 'Done' in recv_com:
+                print("Failed to update position.")
 
             # Debug mode
             elif debug:
@@ -200,10 +195,12 @@ def update_pos(serial_port, coord, axis, mode='XYZ'):
 
 # Toggle Manual Mode on/off
 def toggle_manual(serial_port):
+
     send_command(serial_port, "~\r")
     receive_command(serial_port)
     receive_command(serial_port)
     receive_command(serial_port)
+    
     return
 
 
@@ -216,15 +213,20 @@ def set_speed(serial_port, speed):
     
     return
 
+
 # Highlight controller diagram
 def draw_highlight(highlight_surface, position, input_type='button'):
+    
     if input_type == 'button':
         highlight_color = (255, 255, 0) + (180,)
         highlight_radius = 25
+
     elif input_type == 'analog':
         highlight_color = (255, 0, 0)
         highlight_radius = 7
+
     pygame.draw.circle(highlight_surface, highlight_color, position, highlight_radius)
+
 
 # Initialize controller
 def controller_init():

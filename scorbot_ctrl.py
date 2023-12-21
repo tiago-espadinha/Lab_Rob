@@ -8,17 +8,17 @@ Authors:
 import pygame
 import ScorbotCom as scom
 import Config as cfg
-from Config import cam_port, scalp_port, speed_array, speed_mode, debug, default_pos, deadzone, delta
+from Config import cam_port, scalp_port, speed_array, speed_mode, default_pos, deadzone, delta
 from CtrlMapping import map_position, ctrl_map_btn, ctrl_map_ax
 import time
 
-# TODO: Check Manual Mode and Robot initialization
 # Initialize serial port communication
 serial_cam = scom.port_init(cam_port)
 serial_scalp = scom.port_init(scalp_port)
 serial_cur = 'Cam'
 joint_mode = {'Cam': 'XYZ', 'Scalp': 'XYZ'}
 cur_est = {'Cam': [[0,0,0,0,0],[0,0,0,0,0]], 'Scalp': [[0,0,0,0,0],[0,0,0,0,0]]}
+
 
 # Get controller input
 def get_event(joystick, highlight_surface, image):
