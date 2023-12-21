@@ -1,13 +1,12 @@
-import pygame
-import serial
-import time
-import numpy as np
+'''
+Authors: 
+    Diogo Rosa   - 93044
+    Tomás Bastos - 93194
+    Tiago Simões - 96329
+'''
 
-import ScorbotCom as scom
-import ScorbotCtrl as sctrl
-import CtrlMapping as ctrlmap
+from Config import controller
 
-controller = "PS4"
 
 map_position = { 'X': (492,260), 
                  'Circle': (537,215), 
@@ -29,23 +28,6 @@ map_position = { 'X': (492,260),
                  'Touchpad': (326,175)
                  }
 
-ctrl_map_key = {'X': pygame.K_k, 
-                'Circle': pygame.K_l, 
-                'Square': pygame.K_j, 
-                'Triangle': pygame.K_i, 
-                'Share': pygame.K_n, 
-                'PS': pygame.K_SPACE, 
-                'Options': pygame.K_m, 
-                'L3': pygame.K_z, 
-                'R3': pygame.K_x, 
-                'L1': pygame.K_q,
-                'R1': pygame.K_e,
-                'Up': pygame.K_w, 
-                'Down': pygame.K_s, 
-                'Left': pygame.K_a,
-                'Right': pygame.K_d,
-                'Touchpad': pygame.K_c
-                }
 
 # Lab Controller Mapping 
 if controller == "PS3":

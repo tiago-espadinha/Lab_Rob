@@ -1,340 +1,274 @@
+'''
+Authors: 
+    Diogo Rosa   - 93044
+    Tomás Bastos - 93194
+    Tiago Simões - 96329
+'''
+
 import pygame
-import serial
 import time
-import numpy as np
-
 import ScorbotCom as scom
-import ScorbotCtrl as sctrl
-import CtrlMapping as ctrlmap
+from CtrlMapping import map_position, ctrl_map_btn, ctrl_map_ax
+from Config import debug, default_pos, speed_array, deadzone
+import Config as cfg
 
-default_pos = ((1300, -11700, -5480, -10300, 2140),(5000, 100, 8000, 0, 0))
-default_pos_cam1 = ((-860, -14850, -430, -27000, -2930),(3100, -540, 7900, -200, -480)) # Camera position to see robot
-default_pos_cam2 = ((-300, -15720, -28440, -4050, -2720),(2980, -410, 2810, -540, -460)) # Camera position to see gelatin
+# TODO: Check if robot recalibrated correctly
+# TODO: Fix movement limiters
 
+count = 0
 
-
-
-# Movement step size
-sensitivity_array = [10, 100, 500]
-sensitivity = 1
-
-deadzone = 0.5
-
-def cmp(a, b):
-    return (a > b) - (a < b)
-# Highlight controller diagram
-def draw_highlight(highlight_surface, position):
-    highlight_color = (255, 255, 0) + (180,)
-    highlight_radius = 25
-    pygame.draw.circle(highlight_surface, highlight_color, position, highlight_radius)
+# # Highlight controller diagram
+# def scom.draw_highlight(highlight_surface, position, input_type='button'):
+#     if input_type == 'button':
+#         highlight_color = (255, 255, 0) + (180,)
+#         highlight_radius = 25
+#     elif input_type == 'analog':
+#         highlight_color = (255, 0, 0)
+#         highlight_radius = 7
+#     pygame.draw.circle(highlight_surface, highlight_color, position, highlight_radius)
 
 
-# Initialize controller
-def controller_init():
-    pygame.joystick.init()
+# # Initialize controller
+# def controller_init():
+#     pygame.joystick.init()
 
-    if pygame.joystick.get_count() == 0:
-        print("No gamepad found.")
-        return
+#     if pygame.joystick.get_count() == 0:
+#         print("No gamepad found.")
+#         if debug:
+#             return None
+#         else:
+#             exit(0)
     
-    joystick = pygame.joystick.Joystick(0)
-    joystick.init()
-    return joystick
+#     joystick = pygame.joystick.Joystick(0)
+#     joystick.init()
+#     return joystick
 
 
-# Get controller input
-def get_event(joystick, serial_port, highlight_surface, image, cur_pos, count):
-    global sensitivity
-    next_pos = cur_pos
-    for event in pygame.event.get():
-            # Keyboard input
-            count += 1
-            if event.type == pygame.KEYDOWN:
-                if event.key == ctrlmap.ctrl_map_key['Triangle']:
-                    draw_highlight(highlight_surface, ctrlmap.map_position['Triangle'])
-                if event.key == ctrlmap.ctrl_map_key['Square']:
-                    draw_highlight(highlight_surface, ctrlmap.map_position['Square'])
-                if event.key == ctrlmap.ctrl_map_key['Circle']:
-                    draw_highlight(highlight_surface, ctrlmap.map_position['Circle'])
-                if event.key == ctrlmap.ctrl_map_key['X']:
-                    draw_highlight(highlight_surface, ctrlmap.map_position['X'])
-
-                if event.key == ctrlmap.ctrl_map_key['Up']:
-                    draw_highlight(highlight_surface, ctrlmap.map_position['Up'])
-                if event.key == ctrlmap.ctrl_map_key['Down']:
-                    draw_highlight(highlight_surface, ctrlmap.map_position['Down'])
-                if event.key == ctrlmap.ctrl_map_key['Left']:
-                    draw_highlight(highlight_surface, ctrlmap.map_position['Left'])
-                if event.key == ctrlmap.ctrl_map_key['Right']:
-                    draw_highlight(highlight_surface, ctrlmap.map_position['Right'])
-                    
-
-                if event.key == ctrlmap.ctrl_map_key['L1']:
-                    draw_highlight(highlight_surface, ctrlmap.map_position['L1'])
-                if event.key == ctrlmap.ctrl_map_key['R1']:
-                    draw_highlight(highlight_surface, ctrlmap.map_position['R1'])
-                if event.key == ctrlmap.ctrl_map_key['L3']:
-                    draw_highlight(highlight_surface, ctrlmap.map_position['L3'])
-                if event.key == ctrlmap.ctrl_map_key['R3']:
-                    draw_highlight(highlight_surface, ctrlmap.map_position['R3'])
-
-                if event.key == ctrlmap.ctrl_map_key['Options']:
-                    draw_highlight(highlight_surface, ctrlmap.map_position['Options'])
-                if event.key == ctrlmap.ctrl_map_key['Share']:
-                    draw_highlight(highlight_surface, ctrlmap.map_position['Share'])
-                if event.key == ctrlmap.ctrl_map_key['PS']:
-                    draw_highlight(highlight_surface, ctrlmap.map_position['PS'])
-                if event.key == ctrlmap.ctrl_map_key['Touchpad']:
-                    draw_highlight(highlight_surface, ctrlmap.map_position['Touchpad'])
+# # Get controller input
+# def get_event(joystick, highlight_surface, image):
+#     clr_flag = False
+#     import scorbot_ctrl as main
+#     from scorbot_ctrl import serial_cam, serial_scalp
+#     screen_text = [pygame.font.SysFont("moonspace",24).render("Mode: " + main.joint_mode[main.serial_cur],1,(0,180,200)), 
+#                    pygame.font.SysFont("moonspace",24).render("Robot: " + main.serial_cur,1,(0,180,200)),
+#                    pygame.font.SysFont("moonspace",24).render("Speed: " + str(speed_array[cfg.speed_mode[main.serial_cur]]),1,(0,180,200))]
+#     global count
+#     if main.serial_cur == 'Cam':
+#         serial_port = serial_cam
+#     elif main.serial_cur == 'Scalp':
+#         serial_port = serial_scalp
+#     for event in pygame.event.get():
+#             count += 1
             
-            # Controller input
-            # Analog input
-            # TODO: Avoid spamming
-            # TODO: Fix sensitivity
-            # TODO: Fix movement limiters
-            if event.type == pygame.JOYAXISMOTION and count % 200 == 0:
+#             # Analog input
+#             if event.type == pygame.JOYAXISMOTION:
+#                 # X/Base movement 
+#                 # Left
+#                 if joystick.get_axis(ctrl_map_ax['Anlg_L_horz']) < -deadzone:
+#                     pos = (map_position['L3'][0]+(joystick.get_axis(ctrl_map_ax['Anlg_L_horz'])*30),map_position['L3'][1])
+#                     scom.draw_highlight(highlight_surface, pos, 'analog')
+#                     if serial_port is not None:
+#                         scom.send_command(serial_port, "22222\r")
+
+#                 # Right
+#                 elif joystick.get_axis(ctrl_map_ax['Anlg_L_horz']) > deadzone:
+#                     pos = (map_position['L3'][0]+(joystick.get_axis(ctrl_map_ax['Anlg_L_horz'])*30),map_position['L3'][1])
+#                     scom.draw_highlight(highlight_surface, pos, 'analog')
+#                     if serial_port is not None:
+#                         if main.joint_mode[main.serial_cur] == 'JOINT':
+#                             if cur_est[0][0] < cfg.limits_joint[0][1]:
+#                                 scom.send_command(serial_port, "wwwww\r")
+#                                 cur_est[0][0] += 100
+
+#                 # Y/Shoulder movement
+#                 # Forward
+#                 elif joystick.get_axis(ctrl_map_ax['Anlg_L_vert']) < -deadzone:
+#                     pos = (map_position['L3'][0],map_position['L3'][1]+(joystick.get_axis(ctrl_map_ax['Anlg_L_vert'])*30))
+#                     scom.draw_highlight(highlight_surface, pos, 'analog')
+#                     if serial_port is not None:
+#                         scom.send_command(serial_port, "11111\r")
+
+#                 # Backward
+#                 elif joystick.get_axis(ctrl_map_ax['Anlg_L_vert']) > deadzone:
+#                     pos = (map_position['L3'][0],map_position['L3'][1]+(joystick.get_axis(ctrl_map_ax['Anlg_L_vert'])*30))
+#                     scom.draw_highlight(highlight_surface, pos, 'analog')
+#                     if serial_port is not None:
+#                         scom.send_command(serial_port, "qqqqq\r")
                 
-                # right up
-                if joystick.get_axis(ctrlmap.ctrl_map_ax['Anlg_L_vert']) < -deadzone and joystick.get_axis(ctrlmap.ctrl_map_ax['Anlg_L_horz']) > deadzone:
-                    draw_highlight(highlight_surface, ctrlmap.map_position['Up'])
-                    draw_highlight(highlight_surface, ctrlmap.map_position['Right'])        
-                    next_pos[1][0] += sensitivity_array[sensitivity]
-                    next_pos[1][1] -= sensitivity_array[sensitivity]
-                    scom.update_pos(serial_port, next_pos, 'ALL')
-                    if scom.move_to_pos(serial_port) == 1:
-                        cur_pos = next_pos  
+#                 # Z/Elbow movement
+#                 # Up
+#                 elif joystick.get_axis(ctrl_map_ax['Anlg_L2']) > deadzone:
+#                     scom.draw_highlight(highlight_surface, map_position['L1'])
+#                     if serial_port is not None:
+#                         scom.send_command(serial_port, "eeeee\r")
 
-                # right down
-                elif joystick.get_axis(ctrlmap.ctrl_map_ax['Anlg_L_vert']) > deadzone and joystick.get_axis(ctrlmap.ctrl_map_ax['Anlg_L_horz']) > deadzone:
-                    draw_highlight(highlight_surface, ctrlmap.map_position['Down'])
-                    draw_highlight(highlight_surface, ctrlmap.map_position['Right'])        
-                    next_pos[1][0] -= sensitivity_array[sensitivity]
-                    next_pos[1][1] -= sensitivity_array[sensitivity]
-                    scom.update_pos(serial_port, next_pos, 'ALL')
-                    if scom.move_to_pos(serial_port) == 1:
-                        cur_pos = next_pos
+#                 # Down
+#                 elif joystick.get_axis(ctrl_map_ax['Anlg_R2']) > deadzone:
+#                     scom.draw_highlight(highlight_surface, map_position['R1'])
+#                     if serial_port is not None:
+#                         scom.send_command(serial_port, "33333\r")
 
-                # left down
-                elif joystick.get_axis(ctrlmap.ctrl_map_ax['Anlg_L_vert']) > deadzone and joystick.get_axis(ctrlmap.ctrl_map_ax['Anlg_L_horz']) < -deadzone:
-                    draw_highlight(highlight_surface, ctrlmap.map_position['Down'])
-                    draw_highlight(highlight_surface, ctrlmap.map_position['Left'])        
-                    next_pos[1][0] -= sensitivity_array[sensitivity]
-                    next_pos[1][1] += sensitivity_array[sensitivity]
-                    scom.update_pos(serial_port, next_pos, 'ALL')
-                    if scom.move_to_pos(serial_port) == 1:
-                        cur_pos = next_pos
+#                 # Pitch movement
+#                 # Up
+#                 elif joystick.get_axis(ctrl_map_ax['Anlg_R_vert']) < -deadzone:
+#                     pos = (map_position['R3'][0],map_position['R3'][1]+(joystick.get_axis(ctrl_map_ax['Anlg_R_vert'])*30))
+#                     scom.draw_highlight(highlight_surface, pos, 'analog')
+#                     if serial_port is not None:
+#                         scom.send_command(serial_port, "44444\r")
+
+#                 # Down
+#                 elif joystick.get_axis(ctrl_map_ax['Anlg_R_vert']) > deadzone:
+#                     pos = (map_position['R3'][0],map_position['R3'][1]+(joystick.get_axis(ctrl_map_ax['Anlg_R_vert'])*30))
+#                     scom.draw_highlight(highlight_surface, pos, 'analog')
+#                     if serial_port is not None:
+#                         scom.send_command(serial_port, "rrrrr\r")
+
+#                 # Roll movement
+#                 # Left
+#                 elif joystick.get_axis(ctrl_map_ax['Anlg_R_horz']) < -deadzone:
+#                     pos = (map_position['R3'][0]+(joystick.get_axis(ctrl_map_ax['Anlg_R_horz'])*30), map_position['R3'][1])
+#                     scom.draw_highlight(highlight_surface, pos, 'analog')
+#                     if serial_port is not None:
+#                         scom.send_command(serial_port, "tttt\r")
+
+#                 # Right
+#                 elif joystick.get_axis(ctrl_map_ax['Anlg_R_horz']) > deadzone:
+#                     pos = (map_position['R3'][0]+(joystick.get_axis(ctrl_map_ax['Anlg_R_horz'])*30), map_position['R3'][1])
+#                     scom.draw_highlight(highlight_surface, pos, 'analog')
+#                     if serial_port is not None:
+#                         scom.send_command(serial_port, "5555\r")
+
+#             # Button input
+#             if event.type == pygame.JOYBUTTONDOWN:
+
+#                 # Control Enable
+#                 if joystick.get_button(ctrl_map_btn['L3']):
+#                     scom.draw_highlight(highlight_surface, map_position['L3'])
+#                     if serial_port is not None:
+#                         scom.send_command(serial_port, "c\r")
+#                         scom.receive_command(serial_port)
+#                         scom.receive_command(serial_port)
+                   
+#                 # Joint/XYZ mode
+#                 if joystick.get_button(ctrl_map_btn['R3']):
+#                     scom.draw_highlight(highlight_surface, map_position['R3'])
+#                     if main.joint_mode[main.serial_cur] == 'JOINT':
+#                         if serial_port is not None:
+#                             scom.send_command(serial_port, "x\r")
+#                             scom.receive_command(serial_port)
+#                             scom.receive_command(serial_port)
+#                         main.joint_mode[main.serial_cur] = 'XYZ'
+#                         print(main.serial_cur + " in XYZ Mode")
+
+#                     elif main.joint_mode[main.serial_cur] == 'XYZ':
+#                         if serial_port is not None:    
+#                             scom.send_command(serial_port, "j\r")
+#                             scom.receive_command(serial_port)
+#                             scom.receive_command(serial_port)
+#                         main.joint_mode[main.serial_cur] = 'JOINT'
+#                         print(main.serial_cur + " in Joint Mode")
+
+#                     #screen_text[0] = pygame.font.SysFont("moonspace",24).render("Mode: "+main.joint_mode[main.serial_cur],1,(255,0,0))
+                    
+#                 # Speed
+#                 if joystick.get_button(ctrl_map_btn['Select']):
+#                     scom.draw_highlight(highlight_surface, map_position['Select'])
+#                     cfg.speed_mode[main.serial_cur] = (cfg.speed_mode[main.serial_cur] + 1) % 3
+#                     scom.set_speed(serial_port, speed_array[cfg.speed_mode[main.serial_cur]])
+#                     print("Speed: " + str(speed_array[cfg.speed_mode[main.serial_cur]]))
+
+#                 # Switch Robots
+#                 if joystick.get_button(ctrl_map_btn['Triangle']):
+#                     scom.draw_highlight(highlight_surface, map_position['Triangle'])
+#                     if main.serial_cur == 'Cam':
+#                         serial_port = serial_cam
+#                         main.serial_cur = 'Scalp'
+#                         print("\nSwitched to Scalp")
+#                     elif main.serial_cur == 'Scalp':
+#                         serial_port = serial_scalp
+#                         main.serial_cur = 'Cam'
+#                         print("\nSwitched to Cam")
+#                     #screen_text[1] = pygame.font.SysFont("moonspace",24).render("Robot: "+main.serial_cur,1,(255,0,0))
+
+#                 # Exit manual mode
+#                 if serial_port is not None:
+#                     scom.toggle_manual(serial_port)
+
+#                 # Recalibrate
+#                 if joystick.get_button(ctrl_map_btn['Square']):
+#                     scom.draw_highlight(highlight_surface, map_position['Square'])
+#                     calib_com = "HOME\r"
+#                     if serial_port is not None:
+#                         scom.send_command(serial_port, calib_com)
+#                         scom.receive_command(serial_port)
+#                         scom.receive_command(serial_port)
+
+#                         start_time = time.time()
+#                         while True:
+#                             recv_com = scom.receive_command(serial_port)
+#                             if "Homing Complete" in recv_com:
+#                                 print("Received :", recv_com)
+#                                 break
+#                             if time.time() - start_time > 180:
+#                                 print("Homing Timeout")
+#                                 break
+                        
+#                     else:
+#                         print("\nSent: " + calib_com)
                 
-                # left up
-                elif joystick.get_axis(ctrlmap.ctrl_map_ax['Anlg_L_vert']) < -deadzone and joystick.get_axis(ctrlmap.ctrl_map_ax['Anlg_L_horz']) < -deadzone:
-                    draw_highlight(highlight_surface, ctrlmap.map_position['Up'])
-                    next_pos[1][0] += sensitivity_array[sensitivity]
-                    # scom.update_pos(serial_port, next_pos, 'X')
-                    # if scom.move_to_pos(serial_port) == 1:
-                    #     cur_pos = next_pos
-                    # Diagonal movement
-                    #if joystick.get_axis(ctrlmap.ctrl_map_ax['Anlg_L_horz']) < -deadzone:
-                    draw_highlight(highlight_surface, ctrlmap.map_position['Left'])                       
-                        #draw_highlight(highlight_surface, ctrlmap.map_position['Up'])
-                        #next_pos[1][0] += sensitivity_array[sensitivity]
-                    next_pos[1][1] += sensitivity_array[sensitivity]
-                    scom.update_pos(serial_port, next_pos, 'ALL')
-                    if scom.move_to_pos(serial_port) == 1:
-                        cur_pos = next_pos
-                # Left movement
-                elif joystick.get_axis(ctrlmap.ctrl_map_ax['Anlg_L_horz']) < -deadzone:
-                    draw_highlight(highlight_surface, ctrlmap.map_position['Left'])
-                    next_pos[1][1] += sensitivity_array[sensitivity]
-                    scom.update_pos(serial_port, next_pos, 'Y')
-                    if scom.move_to_pos(serial_port) == 1:
-                        cur_pos = next_pos
-                # Up movement
-                elif joystick.get_axis(ctrlmap.ctrl_map_ax['Anlg_L_vert']) < -deadzone:
-                    draw_highlight(highlight_surface, ctrlmap.map_position['Up'])
-                    next_pos[1][0] += sensitivity_array[sensitivity]
-                    scom.update_pos(serial_port, next_pos, 'X')
-                    if scom.move_to_pos(serial_port) == 1:
-                        cur_pos = next_pos
-                #Down movement
-                elif joystick.get_axis(ctrlmap.ctrl_map_ax['Anlg_L_vert']) > deadzone:
-                    draw_highlight(highlight_surface, ctrlmap.map_position['Down'])
-                    next_pos[1][0] -= sensitivity_array[sensitivity]
-                    scom.update_pos(serial_port, next_pos, 'X')
-                    if scom.move_to_pos(serial_port) == 1:
-                        cur_pos = next_pos
-                # Right movement
-                elif joystick.get_axis(ctrlmap.ctrl_map_ax['Anlg_L_horz']) > deadzone:
-                    draw_highlight(highlight_surface, ctrlmap.map_position['Right'])
-                    next_pos[1][1] -= sensitivity_array[sensitivity]
-                    scom.update_pos(serial_port, next_pos, 'Y')
-                    if scom.move_to_pos(serial_port) == 1:
-                        cur_pos = next_pos
+#                 # Move to default position
+#                 if joystick.get_button(ctrl_map_btn['Circle']):             
+#                     scom.draw_highlight(highlight_surface, map_position['Circle'])
+#                     next_pos = list(list(item) for item in default_pos)
+#                     scom.update_pos(serial_port, next_pos, 'ALL')
+#                     if scom.move_to_pos(serial_port) != 1:
+#                         print("Return to Default Position Failed")
 
-                # Pitch movement joint
-                if joystick.get_axis(ctrlmap.ctrl_map_ax['Anlg_R_vert']) < -deadzone:
-                    scom.get_position(serial_port)
-                    draw_highlight(highlight_surface, ctrlmap.map_position['Triangle'])
-                    next_pos[0][3] += int(sensitivity_array[sensitivity]*10)
-                    scom.update_pos(serial_port, next_pos, '4', 'Joint')
-                    if scom.move_to_pos(serial_port) == 1:
-                        cur_pos = next_pos
-
-                if joystick.get_axis(ctrlmap.ctrl_map_ax['Anlg_R_vert']) > deadzone:
-                    draw_highlight(highlight_surface, ctrlmap.map_position['X'])
-                    next_pos[0][3] -= int(sensitivity_array[sensitivity]*10)
-                    scom.update_pos(serial_port, next_pos, '4', mode = 'Joint')
-                    if scom.move_to_pos(serial_port) == 1:
-                        cur_pos = next_pos
-
-                # Roll movement
-                if joystick.get_axis(ctrlmap.ctrl_map_ax['Anlg_R_horz']) < -deadzone:
-                    draw_highlight(highlight_surface, ctrlmap.map_position['Square'])
-                    next_pos[1][4] += int(sensitivity_array[sensitivity]/2)
-                    scom.update_pos(serial_port, next_pos, 'R')
-                    if scom.move_to_pos(serial_port) == 1:
-                        cur_pos = next_pos
-
-                if joystick.get_axis(ctrlmap.ctrl_map_ax['Anlg_R_horz']) > deadzone:
-                    draw_highlight(highlight_surface, ctrlmap.map_position['Circle'])
-                    next_pos[1][4] -= int(sensitivity_array[sensitivity]/2)
-                    scom.update_pos(serial_port, next_pos, 'R')
-                    if scom.move_to_pos(serial_port) == 1:
-                        cur_pos = next_pos
+#                 # Get current position
+#                 if joystick.get_button(ctrl_map_btn['X']):
+#                     scom.draw_highlight(highlight_surface, map_position['X']) 
+#                     cur_pos = scom.get_position(serial_port)
+#                     if cur_pos is not None:
+#                         print ('Current position:' + str(cur_pos))
+#                     else:
+#                         print("Failed to get position.")
                 
-                # print(next_pos)
-                # print(cur_pos)
-                # print(default_pos)
-                # scom.send_command(serial_port, "LISTPV A31\r")
-                # scom.receive_command(serial_port)
-                # scom.receive_command(serial_port)
-                # scom.receive_command(serial_port)
-                # scom.receive_command(serial_port)
-                # if not np.array_equal(np.array(next_pos), np.array(cur_pos)):
-                #     print("Moving")
-                #     scom.update_pos(serial_port, next_pos, 'ALL')
-                #     if scom.move_to_pos(serial_port) == 1:
-                #         cur_pos = next_pos
+#                 # Show Help Screen
+#                 if joystick.get_button(ctrl_map_btn['Start']):
+#                     scom.draw_highlight(highlight_surface, map_position['Start'])
+#                     # Load image
+#                     help_image_path = 'Images/PS3_ctrl_help.jpg'
+#                     help_image = pygame.image.load(help_image_path)
+#                     width, height = help_image.get_size()
 
-            # Button input
-            if event.type == pygame.JOYBUTTONDOWN:
-                # Switch Robots
-                if joystick.get_button(ctrlmap.ctrl_map_btn['Triangle']):
-                    draw_highlight(highlight_surface, ctrlmap.map_position['Triangle'])
-                    # TODO: Implement switching correctly
-                    # if serial_port == serial_rob1:
-                    #     serial_port = serial_rob2
-                    # else:
-                    #     serial_port = serial_rob1
+#                     help_screen = pygame.display.set_mode((width, height))
+#                     pygame.display.set_caption('Controller Help')
+#                     help_screen.blit(help_image, (0,0))
+#                     pygame.display.flip()
 
-                # Recalibrate
-                if joystick.get_button(ctrlmap.ctrl_map_btn['Square']):
-                    draw_highlight(highlight_surface, ctrlmap.map_position['Square'])
-                    calib_com = "HOME\r"
-                    if serial_port is not None:
-                        scom.send_command(serial_port, calib_com)
-                        cur_pos = scom.get_position(serial_port)
-                        # TODO: Check if robot recalibrated correctly
-                    else:
-                        print("Sent: " + calib_com)
-                
-                # Move to default position
-                if joystick.get_button(ctrlmap.ctrl_map_btn['Circle']):             
-                    draw_highlight(highlight_surface, ctrlmap.map_position['Circle'])
-                    next_pos = list(list(item) for item in default_pos)
-                    scom.update_pos(serial_port, next_pos, 'ALL')
-                    if scom.move_to_pos(serial_port) == 1:
-                        cur_pos = next_pos
-                    else:
-                        print("Movement Failed")
+#                     # Wait for Start button to be pressed again
+#                     while True:
+#                         event2 = pygame.event.wait()
+#                         if event2.type == pygame.QUIT:
+#                             return True, clr_flag, screen_text
+#                         elif event2.type == pygame.JOYBUTTONDOWN:
+#                             if joystick.get_button(ctrl_map_btn['Start']):
+#                                 # Close help screen
+#                                 width, height = image.get_size()
 
-                # Initialize with current position
-                if joystick.get_button(ctrlmap.ctrl_map_btn['X']):
-                    draw_highlight(highlight_surface, ctrlmap.map_position['X']) 
-                    cur_pos = scom.get_position(serial_port)
-                    print ('Current position:' + str(cur_pos))
+#                                 help_screen = pygame.display.set_mode((width, height))
+#                                 pygame.display.set_caption('Controller Mapper')
+#                                 help_screen.blit(help_image, (0,0))
+#                                 pygame.display.flip()
+#                                 break
 
-                #next_pos = cur_pos
-                # X axis movement
-                if joystick.get_button(ctrlmap.ctrl_map_btn['Up']):
-                    draw_highlight(highlight_surface, ctrlmap.map_position['Up'])
-                    next_pos[1][0] += sensitivity_array[sensitivity]
-                    scom.update_pos(serial_port, next_pos, 'X')
-                    if scom.move_to_pos(serial_port) == 1:
-                        cur_pos = next_pos
+#                 # Enter Manual Mode 
+#                 if serial_port is not None:
+#                     scom.toggle_manual(serial_port)
 
-                if joystick.get_button(ctrlmap.ctrl_map_btn['Down']):
-                    draw_highlight(highlight_surface, ctrlmap.map_position['Down'])
-                    next_pos[1][0] -= sensitivity_array[sensitivity]
-                    scom.update_pos(serial_port, next_pos, 'X')
-                    if scom.move_to_pos(serial_port) == 1:
-                        cur_pos = next_pos
+#             if event.type == pygame.JOYBUTTONUP: 
+#                 clr_flag=True
 
-                # Y axis movement
-                if joystick.get_button(ctrlmap.ctrl_map_btn['Left']):
-                    draw_highlight(highlight_surface, ctrlmap.map_position['Left'])
-                    next_pos[1][1] += sensitivity_array[sensitivity]
-                    scom.update_pos(serial_port, next_pos, 'Y')
-                    if scom.move_to_pos(serial_port) == 1:
-                        cur_pos = next_pos
-
-                if joystick.get_button(ctrlmap.ctrl_map_btn['Right']):
-                    draw_highlight(highlight_surface, ctrlmap.map_position['Right'])
-                    next_pos[1][1] -= sensitivity_array[sensitivity]
-                    scom.update_pos(serial_port, next_pos, 'Y')
-                    if scom.move_to_pos(serial_port) == 1:
-                        cur_pos = next_pos
-
-                # Z axis movement
-                if joystick.get_button(ctrlmap.ctrl_map_btn['L1']):
-                    draw_highlight(highlight_surface, ctrlmap.map_position['L1'])
-                    next_pos[1][2] -= sensitivity_array[sensitivity]
-                    scom.update_pos(serial_port, next_pos, 'Z')
-                    if scom.move_to_pos(serial_port) == 1:
-                        cur_pos = next_pos
-
-                if joystick.get_button(ctrlmap.ctrl_map_btn['R1']):
-                    draw_highlight(highlight_surface, ctrlmap.map_position['R1'])
-                    next_pos[1][2] += sensitivity_array[sensitivity]
-                    scom.update_pos(serial_port, next_pos, 'Z')
-                    if scom.move_to_pos(serial_port) == 1:
-                        cur_pos = next_pos
-                
-                # TODO: Clean code
-                # TODO: Fix Image size
-                if joystick.get_button(ctrlmap.ctrl_map_btn['Select']):
-                    draw_highlight(highlight_surface, ctrlmap.map_position['Select'])
-                    sensitivity = (sensitivity + 1) % 3
-                    print("Sensitivity: " + str(sensitivity_array[sensitivity]))
-
-                if joystick.get_button(ctrlmap.ctrl_map_btn['Start']):
-                    draw_highlight(highlight_surface, ctrlmap.map_position['Start'])
-                    # Load image
-                    help_image_path = 'Images/PS3_ctrl_help.jpg'
-                    help_image = pygame.image.load(help_image_path)
-                    width, height = help_image.get_size()
-
-                    screen = pygame.display.set_mode((width, height))
-                    pygame.display.set_caption('Controller Help')
-                    screen.blit(help_image, (0,0))
-                    pygame.display.flip()
-                    while True:
-                        event2 = pygame.event.wait()
-                        if event2.type == pygame.QUIT:
-                            return True, cur_pos, count
-                        elif event2.type == pygame.JOYBUTTONDOWN:
-                            if joystick.get_button(ctrlmap.ctrl_map_btn['Start']):
-                                # Close help screen
-                                width, height = image.get_size()
-
-                                screen = pygame.display.set_mode((width, height))
-                                pygame.display.set_caption('Controller Mapper')
-                                screen.blit(help_image, (0,0))
-                                pygame.display.flip()
-                                break#pygame.quit()
-
-            # Clear Mapping Screen
-            if event.type == pygame.KEYUP or event.type == pygame.JOYBUTTONUP:
-                highlight_surface = pygame.Surface(image.get_size(), pygame.SRCALPHA)
-
-            if event.type == pygame.QUIT:
-                return True, cur_pos, count
-    return False, cur_pos, count
+#             if event.type == pygame.QUIT:
+#                 return True, clr_flag, screen_text
+#     return False, clr_flag, screen_text

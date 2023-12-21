@@ -1,13 +1,18 @@
+'''
+Authors: 
+    Diogo Rosa   - 93044
+    Tomás Bastos - 93194
+    Tiago Simões - 96329
+'''
+
 import pygame
 import serial
-import time
 import numpy as np
+from Config import debug, pos_var, default_pos
 
-import ScorbotCom as scom
-import ScorbotCtrl as sctrl
-import CtrlMapping as ctrlmap
+# TODO: Check Manual Mode and Speed Profile
+# TODO: Analyse Get Position and Move To Position errors
 
-pos_var = "A31"
 
 # Initialize serial port communication
 def port_init(port_name):
@@ -16,7 +21,12 @@ def port_init(port_name):
         serial_port = serial.Serial(port_name, baud_rate, timeout=1)
     except:
         print("Failed to connect to serial port.")
-        return None
+        
+        if debug:
+            return None
+        else:
+            exit(0)
+
     return serial_port
 
 
@@ -27,10 +37,13 @@ def send_command(port, command):
     except:
         print("Failed to write to serial port.")
         return
-    print("Sent: ", command.encode('utf8'))
+    
+    if debug:
+        print("Sent: ", command.encode('utf8'))
+
     return
     
-    
+
 # Receive data from serial port
 def receive_command(port):
     try:
@@ -39,7 +52,10 @@ def receive_command(port):
         print("Failed to read from serial port.")
         return None
     message = message.decode('utf8')
-    print("Received: ", message)
+
+    if debug:
+        print("Received: ", message)
+
     return message
 
 
@@ -51,7 +67,6 @@ def get_position(serial_port):
     read_pos_com = "LISTPV " + pos_var + "\r"
 
     if serial_port is not None:
-        # TODO: Check order "DEFP", "HERE", "LISTPV"
         # Create variable to store position
         send_command(serial_port, create_pos_com)
         receive_command(serial_port)
@@ -72,27 +87,28 @@ def get_position(serial_port):
                 # Split string and save coordinates
                 coord_array = np.zeros((2,5), dtype=int)
                 
-                recv_com1 = receive_command(serial_port)
-                recv_com2 = receive_command(serial_port)
-                coord_split1 = recv_com1.split(":")
-                coord_split2 = recv_com2.split(":")
+                recv_joint = receive_command(serial_port)
+                recv_xyz = receive_command(serial_port)
+                coord_joint = recv_joint.split(":")
+                coord_xyz = recv_xyz.split(":")
 
                 for j in range(1, 6):
-                    aux1 = coord_split1[j][:-2]
-                    aux2 = coord_split2[j][:-2]
-                    coord_array[0][j-1] = int(aux1)
-                    coord_array[1][j-1] = int(aux2)
+                    aux_j = coord_joint[j][:-2]
+                    aux_x = coord_xyz[j][:-2]
+                    coord_array[0][j-1] = int(aux_j)
+                    coord_array[1][j-1] = int(aux_x)
                 return coord_array
                         
         print("Failed to get position.")
         return None
     
     # Debug mode
-    else:
+    elif debug:
         print("\nSent: " + create_pos_com)
         print("Sent: " + save_pos_com)
         print("Sent: " + read_pos_com + "\n")
-        return list(list(item) for item in sctrl.default_pos)
+        return list(list(item) for item in default_pos)
+      
 
 # Moves robot
 def move_to_pos(serial_port):
@@ -108,25 +124,44 @@ def move_to_pos(serial_port):
             return 0
     
     # Debug mode
-    else:
+    elif debug:
         print("Sent: " + move_com)
 
     return 1
 
+def move_to_home(serial_port):
+    # Update final position
+    move_com = "MOVE 0\r"
+    
+    if serial_port is not None:
+        send_command(serial_port, move_com)
+        receive_command(serial_port)
+        recv_com = receive_command(serial_port)
+        if not 'Done' in recv_com:
+            print("Failed to move robot.")
+            return 0
+    
+    # Debug mode
+    elif debug:
+        print("Sent: " + move_com)
+
+    return 1
+
+
 # Send command to update coordinates
 def update_pos(serial_port, coord, axis, mode='XYZ'):
     if axis =='ALL':
-        if mode == 'XYZ':
+        #if mode == 'XYZ':
             axis_arr = ['X', 'Y', 'Z', 'P', 'R']
             for i in range(len(axis_arr)):
                 update_pos(serial_port, coord, axis_arr[i], mode)
-        elif mode == 'Joint':
+        #elif mode == 'Joint':
             axis_arr = ['1', '2', '3', '4', '5']
             for i in range(len(axis_arr)):
                 update_pos(serial_port, coord, axis_arr[i], mode)
     else:
         # With cartesian coordinates
-        if mode == 'XYZ':   
+        #if mode == 'XYZ':   
             if axis == 'X': # X-axis
                 set_pos_com = "SETPVC " + pos_var + " X " + str(coord[1][0]) + "\r"
             if axis == 'Y': # Y-axis
@@ -139,7 +174,7 @@ def update_pos(serial_port, coord, axis, mode='XYZ'):
                 set_pos_com = "SETPVC " + pos_var + " R " + str(coord[1][4]) + "\r"
 
         # With joint coordinates      
-        elif mode == 'Joint':
+        #elif mode == 'Joint':
             if axis == '1': # Base
                 set_pos_com = "SETPV " + pos_var + " 1 " + str(coord[0][0]) + "\r"
             if axis == '2': # Shoulder
@@ -151,13 +186,57 @@ def update_pos(serial_port, coord, axis, mode='XYZ'):
             if axis == '5': # Wrist Roll
                 set_pos_com = "SETPV " + pos_var + " 5 " + str(coord[0][4]) + "\r"
 
-        if serial_port is not None:
-            send_command(serial_port, set_pos_com)
-            receive_command(serial_port)
-            recv_com = receive_command(serial_port)
-            if not 'Done' in recv_com:
-                print("Failed to update position.")
+            if serial_port is not None:
+                send_command(serial_port, set_pos_com)
+                receive_command(serial_port)
+                recv_com = receive_command(serial_port)
+                if not 'Done' in recv_com:
+                    print("Failed to update position.")
 
-        # Debug mode
+            # Debug mode
+            elif debug:
+                print("\nSent: " + set_pos_com)
+
+
+# Toggle Manual Mode on/off
+def toggle_manual(serial_port):
+    send_command(serial_port, "~\r")
+    receive_command(serial_port)
+    receive_command(serial_port)
+    receive_command(serial_port)
+    return
+
+
+# Change speed profile
+def set_speed(serial_port, speed):
+
+    send_command(serial_port, "SPEED " + str(speed) + "\r")
+    receive_command(serial_port)
+    receive_command(serial_port)
+    
+    return
+
+# Highlight controller diagram
+def draw_highlight(highlight_surface, position, input_type='button'):
+    if input_type == 'button':
+        highlight_color = (255, 255, 0) + (180,)
+        highlight_radius = 25
+    elif input_type == 'analog':
+        highlight_color = (255, 0, 0)
+        highlight_radius = 7
+    pygame.draw.circle(highlight_surface, highlight_color, position, highlight_radius)
+
+# Initialize controller
+def controller_init():
+    pygame.joystick.init()
+
+    if pygame.joystick.get_count() == 0:
+        print("No gamepad found.")
+        if debug:
+            return None
         else:
-            print("Sent: " + set_pos_com)
+            exit(0)
+    
+    joystick = pygame.joystick.Joystick(0)
+    joystick.init()
+    return joystick
