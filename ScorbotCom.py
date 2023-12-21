@@ -13,6 +13,7 @@ from Config import debug, pos_var, default_pos
 # TODO: Check Manual Mode and Speed Profile
 # TODO: Analyse Get Position and Move To Position errors
 
+
 # Initialize serial port communication
 def port_init(port_name):
     baud_rate = 9600
@@ -20,7 +21,7 @@ def port_init(port_name):
         serial_port = serial.Serial(port_name, baud_rate, timeout=1)
     except:
         print("Failed to connect to serial port.")
-
+        
         if debug:
             return None
         else:
@@ -107,7 +108,7 @@ def get_position(serial_port):
         print("Sent: " + save_pos_com)
         print("Sent: " + read_pos_com + "\n")
         return list(list(item) for item in default_pos)
-
+      
 
 # Moves robot
 def move_to_pos(serial_port):
@@ -145,7 +146,6 @@ def move_to_home(serial_port):
         print("Sent: " + move_com)
 
     return 1
-
 
 
 # Send command to update coordinates
