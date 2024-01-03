@@ -28,7 +28,7 @@ In the `Config.py` file adjust the serial port names to the ones available.
 3. Execute the program:
 
    ```bash
-   python scorbot_ctrl.py
+   python scorbot_run.py
    ``` 
 
 

@@ -8,11 +8,10 @@ Authors:
 debug = True
 
 # Serial ports
-scalp_port = 'COM3'
-cam_port   = 'COM4'
+scalp_port = 'COM7'
+cam_port   = 'COM8'
 
 pos_var = 'A31'
-controller = 'PS4'
 
 # Movement speed
 speed_array = [5, 15, 30]

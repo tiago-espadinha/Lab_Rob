@@ -9,7 +9,7 @@ import pygame
 import ScorbotCom as scom
 import Config as cfg
 from Config import cam_port, scalp_port, speed_array, speed_mode, default_pos, deadzone, delta
-from CtrlMapping import map_position, ctrl_map_btn, ctrl_map_ax
+from CtrlMap import map_position, ctrl_map_btn, ctrl_map_ax
 import time
 
 # Initialize serial port communication
@@ -24,9 +24,9 @@ cur_est = {'Cam': [[0,0,0,0,0],[0,0,0,0,0]], 'Scalp': [[0,0,0,0,0],[0,0,0,0,0]]}
 def get_event(joystick, highlight_surface, image):
     global serial_cur
     clr_flag = False
-    screen_text = [pygame.font.SysFont("moonspace",24).render("Mode: " + joint_mode[serial_cur],1,(0,180,200)), 
-                   pygame.font.SysFont("moonspace",24).render("Robot: " + serial_cur,1,(0,180,200)),
-                   pygame.font.SysFont("moonspace",24).render("Speed: " + str(speed_array[cfg.speed_mode[serial_cur]]),1,(0,180,200))]
+    screen_text = [pygame.font.SysFont("moonspace",45).render("Mode: " + joint_mode[serial_cur],1,(132, 86, 139)), 
+                   pygame.font.SysFont("moonspace",45).render("Robot: " + serial_cur,1,(132, 86, 139)),
+                   pygame.font.SysFont("moonspace",45).render("Speed: " + str(speed_array[cfg.speed_mode[serial_cur]]),1,(132, 86, 139))]
     if serial_cur == 'Cam':
         serial_port = serial_cam
     elif serial_cur == 'Scalp':
@@ -202,15 +202,6 @@ def get_event(joystick, highlight_surface, image):
                     cur_est[serial_cur] = scom.get_position(serial_port)
                     scom.toggle_manual(serial_port)
 
-                    #screen_text[0] = pygame.font.SysFont("moonspace",24).render("Mode: "+joint_mode[serial_cur],1,(255,0,0))
-                    
-                # # Speed
-                # if joystick.get_button(ctrl_map_btn['Select']):
-                #     scom.draw_highlight(highlight_surface, map_position['Select'])
-                #     cfg.speed_mode[serial_cur] = (cfg.speed_mode[serial_cur] + 1) % 3
-                #     scom.set_speed(serial_port, speed_array[cfg.speed_mode[serial_cur]])
-                #     print("Speed: " + str(speed_array[cfg.speed_mode[serial_cur]]))
-
                 # Switch Robots
                 if joystick.get_button(ctrl_map_btn['Triangle']):
                     scom.draw_highlight(highlight_surface, map_position['Triangle'])
@@ -222,13 +213,12 @@ def get_event(joystick, highlight_surface, image):
                         serial_port = serial_scalp
                         serial_cur = 'Cam'
                         print("\nSwitched to Cam")
-                    #screen_text[1] = pygame.font.SysFont("moonspace",24).render("Robot: "+serial_cur,1,(255,0,0))
 
                 # Exit manual mode
                 if serial_port is not None:
                     scom.toggle_manual(serial_port)                
                 
-                                # Speed
+                # Speed
                 if joystick.get_button(ctrl_map_btn['Select']):
                     scom.draw_highlight(highlight_surface, map_position['Select'])
                     cfg.speed_mode[serial_cur] = (cfg.speed_mode[serial_cur] + 1) % 3
@@ -276,21 +266,6 @@ def get_event(joystick, highlight_surface, image):
                         print ('Current position:' + str(cur_pos))
                     else:
                         print("Failed to get position.")
-                
-                if joystick.get_button(ctrl_map_btn['Up']):             
-                    scom.draw_highlight(highlight_surface, map_position['Up'])
-                    if scom.move_to_home(serial_port) != 1:
-                        print("Return to Homr Position Failed")
-                
-                if joystick.get_button(ctrl_map_btn['Right']):             
-                    scom.draw_highlight(highlight_surface, map_position['Right'])
-                    scom.send_command(serial_port, "SHOW SPEED\r")
-                    scom.receive_command(serial_port)
-                    print("Speed: " + scom.receive_command(serial_port))
-                    scom.receive_command(serial_port)
-                    scom.receive_command(serial_port)
-                    scom.receive_command(serial_port)
-                    scom.receive_command(serial_port)
 
                 # Show Help Screen
                 if joystick.get_button(ctrl_map_btn['Start']):
@@ -342,7 +317,7 @@ def main():
     joystick = scom.controller_init()
 
     # Load image
-    image_path = 'Images/PS3_ctrl_layout.jpg'
+    image_path = 'Images/PS4_ctrl_layout.jpg'
     image = pygame.image.load(image_path)
     width, height = image.get_size()
 
@@ -350,6 +325,9 @@ def main():
     pygame.display.set_caption('Controller Mapper')
 
     highlight_surface = pygame.Surface(image.get_size(), pygame.SRCALPHA)
+    
+    print('####### SCORBOT PROJECT #######\n')
+    print('For controller help press Start')
 
     # Initialize robot 1
     serial_port = serial_cam
@@ -441,9 +419,11 @@ def main():
         if clr_screen:
             highlight_surface = pygame.Surface(image.get_size(), pygame.SRCALPHA)
         screen.blit(highlight_surface,(0,0))
-        screen.blit(text[0],(50,40))
-        screen.blit(text[1],(250,40))
-        screen.blit(text[2],(450,40))
+        screen.blit(text[0],(50,30))
+        screen.blit(text[1],(270,30))
+        screen.blit(text[2],(510,30))
+        help_text = pygame.font.SysFont("moonspace",30).render("Press Options For Help" ,1,(255,0,0))
+        screen.blit(help_text, (250, 470))
         pygame.display.flip()
         
 
