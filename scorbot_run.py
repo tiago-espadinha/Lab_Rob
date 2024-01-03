@@ -332,10 +332,53 @@ def main():
 
     highlight_surface = pygame.Surface(image.get_size(), pygame.SRCALPHA)
     
-    print('####### SCORBOT PROJECT #######\n')
+    print('\n####### SCORBOT PROJECT #######\n')
     print('For controller help press Start')
 
-    # Initialize robot 1
+    # Initialize Scalp Robot
+    serial_port = serial_scalp
+    serial_cur = 'Scalp'
+
+    if serial_port is not None:
+        scom.send_command(serial_port, "~\r")
+        scom.receive_command(serial_port)
+        recv_com = scom.receive_command(serial_port)
+        scom.receive_command(serial_port)
+
+        if recv_com == "MANUAL MODE!\r\n":
+            scom.send_command(serial_port, "~\r")
+            scom.receive_command(serial_port)
+            scom.receive_command(serial_port)
+            scom.receive_command(serial_port)
+            scom.receive_command(serial_port)
+
+        # Get current position Scalp
+        cur_est[serial_cur] = scom.get_position(serial_port)
+        scom.set_speed(serial_port, speed_array[speed_mode[serial_cur]])
+
+        # Display Response
+        scom.send_command(serial_port, "ECHO\r")
+        scom.receive_command(serial_port)
+        scom.receive_command(serial_port)
+        scom.receive_command(serial_port)
+
+        scom.send_command(serial_port, "~\r")
+        scom.receive_command(serial_port)
+        scom.receive_command(serial_port)
+        scom.receive_command(serial_port)
+
+        # Control enable
+        scom.send_command(serial_port, "c\r")
+        scom.receive_command(serial_port)
+        scom.receive_command(serial_port)
+
+        # Toggle XYZ mode
+        scom.send_command(serial_port, "j\r")
+        scom.receive_command(serial_port)
+        scom.receive_command(serial_port)
+        joint_mode['Scalp'] = 'JOINT'
+
+    # Initialize Camera Robot
     serial_port = serial_cam
     serial_cur = 'Cam'
 
@@ -368,58 +411,15 @@ def main():
         scom.receive_command(serial_port)
 
 
-        scom.send_command(serial_port, "x\r")
-        scom.receive_command(serial_port)
-        scom.receive_command(serial_port)
-
-        joint_mode['Cam'] = 'XYZ'
-
-
-        scom.send_command(serial_port, "c\r")
-        scom.receive_command(serial_port)
-        scom.receive_command(serial_port)
-
-    #initialize robot 2
-    serial_port = serial_scalp
-    serial_cur = 'Scalp'
-
-    if serial_port is not None:
-        scom.send_command(serial_port, "~\r")
-        scom.receive_command(serial_port)
-        recv_com = scom.receive_command(serial_port)
-        scom.receive_command(serial_port)
-        
-        if recv_com == "MANUAL MODE!\r\n":
-            scom.send_command(serial_port, "~\r")
-            scom.receive_command(serial_port)
-            scom.receive_command(serial_port)
-            scom.receive_command(serial_port)
-            scom.receive_command(serial_port)
-
-        # Get current position Scalp
-        cur_est[serial_cur] = scom.get_position(serial_port)
-        scom.set_speed(serial_port, speed_array[speed_mode[serial_cur]])
-    
-        scom.send_command(serial_port, "~\r")
-        scom.receive_command(serial_port)
-        scom.receive_command(serial_port)
-        scom.receive_command(serial_port)
-
-        
-
-        # Control enable
-        scom.send_command(serial_port, "c\r")
-        scom.receive_command(serial_port)
-        scom.receive_command(serial_port)
-
-        # Toggle XYZ mode
         scom.send_command(serial_port, "j\r")
         scom.receive_command(serial_port)
         scom.receive_command(serial_port)
-        joint_mode['Scalp'] = 'JOINT'
 
-    # serial_port = serial_cam
-    # serial_cur = 'Cam'
+        joint_mode['Cam'] = 'JOINT'
+
+        scom.send_command(serial_port, "c\r")
+        scom.receive_command(serial_port)
+        scom.receive_command(serial_port)
 
     # Get controller input
     done = False
@@ -429,6 +429,7 @@ def main():
         ret, frame = cam_feed.read()
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         frame = cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
+        frame = cv2.flip(frame, 0)
         frame = cv2.resize(frame, (height, width))
         pygame_frame = pygame.surfarray.make_surface(frame)
         

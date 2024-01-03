@@ -5,14 +5,14 @@ Authors:
     Tiago Simões - 96329
 '''
 
-debug = True
+debug = False
 
 # Serial ports
 scalp_port = 'COM7'
 cam_port   = 'COM8'
 
 # Camera USB
-cam_usb = 0
+cam_usb = 1
 
 pos_var = 'A31'
 
