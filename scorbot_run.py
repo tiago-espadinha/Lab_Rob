@@ -8,9 +8,10 @@ Authors:
 import pygame
 import ScorbotCom as scom
 import Config as cfg
-from Config import cam_port, scalp_port, speed_array, speed_mode, default_pos, deadzone, delta
+from Config import cam_port, scalp_port, cam_usb, speed_array, speed_mode, default_pos, deadzone, delta, debug
 from CtrlMap import map_position, ctrl_map_btn, ctrl_map_ax
 import time
+import cv2
 
 # Initialize serial port communication
 serial_cam = scom.port_init(cam_port)
@@ -24,9 +25,9 @@ cur_est = {'Cam': [[0,0,0,0,0],[0,0,0,0,0]], 'Scalp': [[0,0,0,0,0],[0,0,0,0,0]]}
 def get_event(joystick, highlight_surface, image):
     global serial_cur
     clr_flag = False
-    screen_text = [pygame.font.SysFont("moonspace",45).render("Mode: " + joint_mode[serial_cur],1,(132, 86, 139)), 
-                   pygame.font.SysFont("moonspace",45).render("Robot: " + serial_cur,1,(132, 86, 139)),
-                   pygame.font.SysFont("moonspace",45).render("Speed: " + str(speed_array[cfg.speed_mode[serial_cur]]),1,(132, 86, 139))]
+    screen_text = [pygame.font.SysFont("moonspace",30).render("Mode: " + joint_mode[serial_cur],1,(132, 86, 139)), 
+                   pygame.font.SysFont("moonspace",30).render("Robot: " + serial_cur,1,(132, 86, 139)),
+                   pygame.font.SysFont("moonspace",30).render("Speed: " + str(speed_array[cfg.speed_mode[serial_cur]]),1,(132, 86, 139))]
     if serial_cur == 'Cam':
         serial_port = serial_cam
     elif serial_cur == 'Scalp':
@@ -289,8 +290,7 @@ def get_event(joystick, highlight_surface, image):
                             if joystick.get_button(ctrl_map_btn['Start']):
                                 # Close help screen
                                 width, height = image.get_size()
-
-                                help_screen = pygame.display.set_mode((width, height))
+                                help_screen = pygame.display.set_mode((width*2, height))
                                 pygame.display.set_caption('Controller Mapper')
                                 help_screen.blit(help_image, (0,0))
                                 pygame.display.flip()
@@ -317,12 +317,18 @@ def main():
     joystick = scom.controller_init()
 
     # Load image
-    image_path = 'Images/PS4_ctrl_layout.jpg'
+    image_path = 'Images/PS4_ctrl_layout3.jpg'
     image = pygame.image.load(image_path)
     width, height = image.get_size()
 
-    screen = pygame.display.set_mode((width, height))
+    screen = pygame.display.set_mode((width*2, height))
     pygame.display.set_caption('Controller Mapper')
+
+    cam_feed = cv2.VideoCapture(cam_usb)
+    if not cam_feed.isOpened():
+        print("Camera is not connected!")
+        if not debug:
+            exit(0)
 
     highlight_surface = pygame.Surface(image.get_size(), pygame.SRCALPHA)
     
@@ -349,6 +355,12 @@ def main():
         # Get current position Cam
         cur_est[serial_cur] = scom.get_position(serial_port)
         scom.set_speed(serial_port, speed_array[speed_mode[serial_cur]])
+
+        # Display Response
+        scom.send_command(serial_port, "ECHO\r")
+        scom.receive_command(serial_port)
+        scom.receive_command(serial_port)
+        scom.receive_command(serial_port)
 
         scom.send_command(serial_port, "~\r")
         scom.receive_command(serial_port)
@@ -414,16 +426,22 @@ def main():
     while not done:
         screen.blit(image, (0,0))
         done, clr_screen, text = get_event(joystick, highlight_surface, image)
-
+        ret, frame = cam_feed.read()
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        frame = cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
+        frame = cv2.resize(frame, (height, width))
+        pygame_frame = pygame.surfarray.make_surface(frame)
+        
         # Update controller window
         if clr_screen:
             highlight_surface = pygame.Surface(image.get_size(), pygame.SRCALPHA)
         screen.blit(highlight_surface,(0,0))
-        screen.blit(text[0],(50,30))
-        screen.blit(text[1],(270,30))
-        screen.blit(text[2],(510,30))
+        screen.blit(text[0],(30,30))
+        screen.blit(text[1],(230,30))
+        screen.blit(text[2],(450,30))
+        screen.blit(pygame_frame, (width,0))
         help_text = pygame.font.SysFont("moonspace",30).render("Press Options For Help" ,1,(255,0,0))
-        screen.blit(help_text, (250, 470))
+        screen.blit(help_text, (190, 360))
         pygame.display.flip()
         
 

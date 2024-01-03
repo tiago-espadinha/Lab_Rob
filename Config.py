@@ -11,6 +11,9 @@ debug = True
 scalp_port = 'COM7'
 cam_port   = 'COM8'
 
+# Camera USB
+cam_usb = 0
+
 pos_var = 'A31'
 
 # Movement speed

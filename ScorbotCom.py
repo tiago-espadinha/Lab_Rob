@@ -158,9 +158,6 @@ def move_to_pos(serial_port):
 
 # Send command to update coordinates
 def update_pos(serial_port, coord, axis):
-    
-
-
     axis_arr = [' X ', ' Y ', ' Z ', ' P ', ' R ', ' 1 ', ' 2 ', ' 3 ', ' 4 ', ' 5 ']
     for i in range(len(axis_arr)):
         # Set cartesian coordinates  
