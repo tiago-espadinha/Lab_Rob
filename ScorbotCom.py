@@ -10,6 +10,36 @@ import serial
 import numpy as np
 from Config import debug, pos_var, default_pos
 
+# Highlight controller diagram
+def draw_highlight(highlight_surface, position, input_type='button'):
+    
+    if input_type == 'button':
+        highlight_color = (255, 255, 0) + (180,)
+        highlight_radius = 25
+
+    elif input_type == 'analog':
+        highlight_color = (255, 0, 0)
+        highlight_radius = 7
+
+    pygame.draw.circle(highlight_surface, highlight_color, position, highlight_radius)
+
+    
+# Initialize controller
+def controller_init():
+    pygame.joystick.init()
+
+    if pygame.joystick.get_count() == 0:
+        print("No gamepad found.")
+        if debug:
+            return None
+        else:
+            exit(0)
+    
+    joystick = pygame.joystick.Joystick(0)
+    joystick.init()
+    return joystick
+
+
 # Initialize serial port communication
 def port_init(port_name):
     baud_rate = 9600
@@ -212,33 +242,3 @@ def set_speed(serial_port, speed):
     receive_command(serial_port)
     
     return
-
-
-# Highlight controller diagram
-def draw_highlight(highlight_surface, position, input_type='button'):
-    
-    if input_type == 'button':
-        highlight_color = (255, 255, 0) + (180,)
-        highlight_radius = 25
-
-    elif input_type == 'analog':
-        highlight_color = (255, 0, 0)
-        highlight_radius = 7
-
-    pygame.draw.circle(highlight_surface, highlight_color, position, highlight_radius)
-
-
-# Initialize controller
-def controller_init():
-    pygame.joystick.init()
-
-    if pygame.joystick.get_count() == 0:
-        print("No gamepad found.")
-        if debug:
-            return None
-        else:
-            exit(0)
-    
-    joystick = pygame.joystick.Joystick(0)
-    joystick.init()
-    return joystick
