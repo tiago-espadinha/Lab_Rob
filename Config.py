@@ -8,7 +8,7 @@ Authors:
 debug = False
 
 # Serial ports
-scalp_port = 'COM7'
+scalp_port = 'COM9'
 cam_port   = 'COM8'
 
 # Camera USB
