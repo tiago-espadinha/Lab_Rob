@@ -272,7 +272,7 @@ def get_event(joystick, highlight_surface, image):
                 if joystick.get_button(ctrl_map_btn['Start']):
                     scom.draw_highlight(highlight_surface, map_position['Start'])
                     # Load image
-                    help_image_path = 'Images/PS3_ctrl_help.jpg'
+                    help_image_path = 'Images/Help_screen.jpg'
                     help_image = pygame.image.load(help_image_path)
                     width, height = help_image.get_size()
 
