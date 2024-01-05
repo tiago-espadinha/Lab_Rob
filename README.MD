@@ -11,6 +11,7 @@ This project uses the following libraries:
 
 - pygame
 - pyserial
+- cv2
 
 ## Usage
 
@@ -25,10 +26,12 @@ In the `Config.py` file adjust the serial port names to the ones available.
 
 2. Connect both the robots to the serial port assigned in `Config.py` file.
 
-3. Execute the program:
+3. Connect the camera to the usb port assigned in `Config.py` file.
+
+4. Execute the program:
 
    ```bash
-   python scorbot_ctrl.py
+   python scorbot_run.py
    ``` 
 
 

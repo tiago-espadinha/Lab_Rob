@@ -5,14 +5,16 @@ Authors:
     Tiago Simões - 96329
 '''
 
-debug = True
+debug = False
 
 # Serial ports
-scalp_port = 'COM3'
-cam_port   = 'COM4'
+scalp_port = 'COM9'
+cam_port   = 'COM8'
+
+# Camera USB
+cam_usb = 1
 
 pos_var = 'A31'
-controller = 'PS4'
 
 # Movement speed
 speed_array = [5, 15, 30]

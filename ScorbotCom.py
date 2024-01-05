@@ -155,61 +155,18 @@ def move_to_pos(serial_port):
 
     return 1
 
-def move_to_home(serial_port):
-    # Update final position
-    move_com = "MOVE 0\r"
-    
-    if serial_port is not None:
-        send_command(serial_port, move_com)
-        receive_command(serial_port)
-        recv_com = receive_command(serial_port)
-        if not 'Done' in recv_com:
-            print("Failed to move robot.")
-            return 0
-    
-    # Debug mode
-    elif debug:
-        print("Sent: " + move_com)
-
-    return 1
-
 
 # Send command to update coordinates
 def update_pos(serial_port, coord, axis):
-    if axis =='ALL':
-        # Set all cartesian coordinates
-        axis_arr = ['X', 'Y', 'Z', 'P', 'R']
-        for i in range(len(axis_arr)):
-            update_pos(serial_port, coord, axis_arr[i])
+    axis_arr = [' X ', ' Y ', ' Z ', ' P ', ' R ', ' 1 ', ' 2 ', ' 3 ', ' 4 ', ' 5 ']
+    for i in range(len(axis_arr)):
+        # Set cartesian coordinates  
+        if i < 5:
+            set_pos_com = "SETPVC " + pos_var + axis_arr[i] + str(coord[1][i]) + "\r"
 
-        # Set all joint coordinates
-        axis_arr = ['1', '2', '3', '4', '5']
-        for i in range(len(axis_arr)):
-            update_pos(serial_port, coord, axis_arr[i])
-    else:
-        # Set cartesian coordinates   
-        if axis == 'X': # X-axis
-            set_pos_com = "SETPVC " + pos_var + " X " + str(coord[1][0]) + "\r"
-        if axis == 'Y': # Y-axis
-            set_pos_com = "SETPVC " + pos_var + " Y " + str(coord[1][1]) + "\r"
-        if axis == 'Z': # Z-axis
-            set_pos_com = "SETPVC " + pos_var + " Z " + str(coord[1][2]) + "\r"
-        if axis == 'P': # Pitch
-            set_pos_com = "SETPVC " + pos_var + " P " + str(coord[1][3]) + "\r"
-        if axis == 'R': # Roll
-            set_pos_com = "SETPVC " + pos_var + " R " + str(coord[1][4]) + "\r"
-
-        # Set joint coordinates      
-        if axis == '1': # Base
-            set_pos_com = "SETPV " + pos_var + " 1 " + str(coord[0][0]) + "\r"
-        if axis == '2': # Shoulder
-            set_pos_com = "SETPV " + pos_var + " 2 " + str(coord[0][1]) + "\r"
-        if axis == '3': # Elbow
-            set_pos_com = "SETPV " + pos_var + " 3 " + str(coord[0][2]) + "\r"
-        if axis == '4': # Wrist Pitch
-            set_pos_com = "SETPV " + pos_var + " 4 " + str(coord[0][3]) + "\r"
-        if axis == '5': # Wrist Roll
-            set_pos_com = "SETPV " + pos_var + " 5 " + str(coord[0][4]) + "\r"
+        # Set joint coordinates
+        else:      
+            set_pos_com = "SETPV " + pos_var + axis_arr[i] + str(coord[0][i-5]) + "\r"
 
         if serial_port is not None:
             send_command(serial_port, set_pos_com)
@@ -218,9 +175,9 @@ def update_pos(serial_port, coord, axis):
             if not 'Done' in recv_com:
                 print("Failed to update position.")
 
-            # Debug mode
-            elif debug:
-                print("\nSent: " + set_pos_com)
+        # Debug mode
+        elif debug:
+            print("\nSent: " + set_pos_com)
 
 
 # Toggle Manual Mode on/off
