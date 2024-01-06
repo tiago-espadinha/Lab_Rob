@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This project provides a Python program that interfaces with two Scorbot robot, enabling control through a controller. 
+This project provides a Python program that interfaces with two Scorbot robots, enabling control through a PS4 controller. 
 The program is designed to facilitate robot movements and actions using the controller in order to perform an operation, with a robot holding a camera and the other a surgical scalp.
 
 ## Requirements
