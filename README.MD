@@ -3,7 +3,7 @@
 ## Introduction
 
 This project provides a Python program that interfaces with two Scorbot robots, enabling control through a PS4 controller. 
-The program is designed to facilitate robot movements and actions using the controller in order to perform an operation, with a robot holding a camera and the other a surgical scalp.
+The program is designed to facilitate robot movements and actions using the controller in order to perform an operation, with a robot holding a camera and the other a surgical scalpel.
 
 ## Requirements
 
@@ -21,7 +21,7 @@ This project uses the following libraries:
 
 In the `Config.py` file make sure to adjust the following:
 
-* scalp_port to the serial port assigned to the robot holding the scalp
+* scalp_port to the serial port assigned to the robot holding the scalpel
 * cam_port to the serial port assigned to the robot holding the camera
 * cam_usb to the usb port assigned to the camera
 

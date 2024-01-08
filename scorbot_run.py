@@ -17,8 +17,8 @@ import cv2
 serial_cam = scom.port_init(cam_port)
 serial_scalp = scom.port_init(scalp_port)
 serial_cur = 'Cam'
-joint_mode = {'Cam': 'XYZ', 'Scalp': 'XYZ'}
-cur_est = {'Cam': [[0,0,0,0,0],[0,0,0,0,0]], 'Scalp': [[0,0,0,0,0],[0,0,0,0,0]]}
+joint_mode = {'Cam': 'XYZ', 'Scalpel': 'XYZ'}
+cur_est = {'Cam': [[0,0,0,0,0],[0,0,0,0,0]], 'Scalpel': [[0,0,0,0,0],[0,0,0,0,0]]}
 
 
 # Get controller input
@@ -30,7 +30,7 @@ def get_event(joystick, highlight_surface, image):
                    pygame.font.SysFont("moonspace",30).render("Speed: " + str(speed_array[cfg.speed_mode[serial_cur]]),1,(132, 86, 139))]
     if serial_cur == 'Cam':
         serial_port = serial_cam
-    elif serial_cur == 'Scalp':
+    elif serial_cur == 'Scalpel':
         serial_port = serial_scalp
     for event in pygame.event.get():
             
@@ -208,9 +208,9 @@ def get_event(joystick, highlight_surface, image):
                     scom.draw_highlight(highlight_surface, map_position['Triangle'])
                     if serial_cur == 'Cam':
                         serial_port = serial_cam
-                        serial_cur = 'Scalp'
-                        print("\nSwitched to Scalp")
-                    elif serial_cur == 'Scalp':
+                        serial_cur = 'Scalpel'
+                        print("\nSwitched to Scalpel")
+                    elif serial_cur == 'Scalpel':
                         serial_port = serial_scalp
                         serial_cur = 'Cam'
                         print("\nSwitched to Cam")
@@ -335,9 +335,9 @@ def main():
     print('\n####### SCORBOT PROJECT #######\n')
     print('For controller help press Start')
 
-    # Initialize Scalp Robot
+    # Initialize Scalpel Robot
     serial_port = serial_scalp
-    serial_cur = 'Scalp'
+    serial_cur = 'Scalpel'
 
     if serial_port is not None:
         scom.send_command(serial_port, "~\r")
@@ -352,7 +352,7 @@ def main():
             scom.receive_command(serial_port)
             scom.receive_command(serial_port)
 
-        # Get current position Scalp
+        # Get current position Scalpel
         cur_est[serial_cur] = scom.get_position(serial_port)
         scom.set_speed(serial_port, speed_array[speed_mode[serial_cur]])
 
@@ -376,7 +376,7 @@ def main():
         scom.send_command(serial_port, "j\r")
         scom.receive_command(serial_port)
         scom.receive_command(serial_port)
-        joint_mode['Scalp'] = 'JOINT'
+        joint_mode['Scalpel'] = 'JOINT'
 
     # Initialize Camera Robot
     serial_port = serial_cam
